@@ -12,13 +12,11 @@ import {CircularProgress} from "@material-ui/core";
 import classes from "../ViewportScene/ViewportScene.module.sass";
 import {useRouter} from "next/router";
 
-import * as THREE from "three";
 //import { ContextApp } from "../ViewportScene/ViewportScene";
 
 const Viewport = React.memo(({ envMaps }) => {
-    // const [assets, setAssets] = useState(null);
-    const [modelAsset, setModelAsset] = useState(null);
-    const [envAsset, setEnvAsset] = useState(null);
+
+    const [assets, setAssets] = useState(null);
     const [active, setActive] = useState(true);
     const [state, dispatch] = useContext(ViewportSceneContext);
 
@@ -31,15 +29,19 @@ const Viewport = React.memo(({ envMaps }) => {
     });
 
     useEffect(() => {
-        if (!state.getCanvas || data === undefined) return;
+        if (!state.getCanvas || data === undefined || !state.getRenderer.envMap) return;
 
         const { GLTFLoader } = require("three/examples/jsm/loaders/GLTFLoader");
         const { DRACOLoader } = require("three/examples/jsm/loaders/DRACOLoader");
+        const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
 
         async function init() {
 
             const gltf = await Loader([GLTFLoader, DRACOLoader], data.model.model.url);
-
+            const env = await Loader([RGBELoader], state.getRenderer.envMap);
+        
+            env.dispose();
+            
             let objects = [];
             gltf.scene.traverse((child) => {
                 if(!child.isMesh ) return;
@@ -53,23 +55,13 @@ const Viewport = React.memo(({ envMaps }) => {
                 }
             });
 
-            setModelAsset({ models: gltf.scene, textures: state.getCanvas })
+
+            setAssets({ model: gltf.scene, canvas: state.getCanvas, env })
         }
         init();
-    }, [state.getCanvas, data])
+    }, [state.getCanvas, state.getRenderer.envMap, data])
 
-    useEffect(() => {
-        if (!state.getRenderer.envMap) return;
-        const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
-        async function init() {
-            const env = await Loader([RGBELoader], state.getRenderer.envMap);
-            setEnvAsset(env);
-        }
-        init();
-    }, [state.getRenderer])
-
-    if (!(modelAsset && envAsset)) {
-      
+    if (!assets) {
         return null;
     }
 
@@ -83,8 +75,8 @@ const Viewport = React.memo(({ envMaps }) => {
                     color="primary" onClick={changeRenderer}>
                 <PhotoCameraIcon />
             </Button>
-            {/*<Renderer assets={assets} type={active} />*/}
-            <Renderer model={modelAsset} env={envAsset} type={active} />
+        
+            <Renderer assets={assets} type={active} />
         </>
 
     )

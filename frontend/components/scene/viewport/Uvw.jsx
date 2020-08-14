@@ -320,12 +320,12 @@ const Uvw = () => {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
 
-                EffectComposer(state.getData.highlighter, state.getData.renderer, state.getData.scene, state.getData.camera);
+                // EffectComposer(state.getData.highlighter, state.getData.renderer, state.getData.scene, state.getData.camera);
 
-                if (!(currentObject instanceof Array)) currentObject = [currentObject];
-                state.getData.highlighter.selectedObjects = currentObject;
+                // if (!(currentObject instanceof Array)) currentObject = [currentObject];
+                // state.getData.highlighter.selectedObjects = currentObject;
 
-                console.log(currentObject)
+                // console.log(currentObject)
 
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 

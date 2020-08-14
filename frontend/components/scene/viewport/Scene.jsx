@@ -9,7 +9,7 @@ const Scene = (model, { canvas, maps }) => {
 
     model.traverse((child) => {
         if (!child.isMesh) return;
-
+        child.material = new THREE.MeshStandardMaterial()
         child.material.side = THREE.DoubleSide;
 
         if (child.name === 'drink') {

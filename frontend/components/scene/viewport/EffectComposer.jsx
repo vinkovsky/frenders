@@ -8,13 +8,13 @@ const EffectComposer = (highlighter, renderer, scene, camera) => {
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     composer.addPass(highlighter);
-    useEffect(() => {
-        const animate = () => {
-            requestAnimationFrame(animate);
-            composer.render();
-        }
-        animate();
-    }, [renderer]);
+    // useEffect(() => {
+    //     const animate = () => {
+    //         requestAnimationFrame(animate);
+    //         composer.render();
+    //     }
+    //     animate();
+    // }, [renderer]);
 }
 
 export default EffectComposer;
