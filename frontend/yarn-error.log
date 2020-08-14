@@ -1,0 +1,87 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js install
+
+PATH: 
+  C:\frenders\node_modules\.bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Common Files\Autodesk Shared\;C:\Program Files\Microsoft SQL Server\120\Tools\Binn\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;C:\Program Files (x86)\Yarn\bin\;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\FRENDERS_04\AppData\Local\Microsoft\WindowsApps;C:\Users\FRENDERS_04\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\heroku\bin;C:\Users\FRENDERS_04\AppData\Roaming\npm;C:\Program Files\JetBrains\WebStorm 2020.1\bin;C:\Users\FRENDERS_04\AppData\Local\Yarn\bin;C:\Users\FRENDERS_04\AppData\Local\GitHubDesktop\bin
+
+Yarn version: 
+  1.22.4
+
+Node version: 
+  12.16.3
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@material-ui/icons/-/icons-4.9.1.tgz: ESOCKETTIMEDOUT
+      at ClientRequest.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:141375:19)
+      at Object.onceWrapper (events.js:416:28)
+      at ClientRequest.emit (events.js:310:20)
+      at TLSSocket.emitRequestTimeout (_http_client.js:709:9)
+      at Object.onceWrapper (events.js:416:28)
+      at TLSSocket.emit (events.js:322:22)
+      at TLSSocket.Socket._onTimeout (net.js:479:8)
+      at listOnTimeout (internal/timers.js:549:17)
+      at processTimers (internal/timers.js:492:7)
+
+npm manifest: 
+  {
+    "name": "frenders",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+      "dev": "node server.js",
+      "build": "next build",
+      "start": "NODE_ENV=production node server.js"
+    },
+    "dependencies": {
+      "@apollo/react-common": "^3.1.4",
+      "@apollo/react-hooks": "^3.1.5",
+      "@apollo/react-ssr": "^3.1.5",
+      "@material-ui/core": "^4.10.2",
+      "@material-ui/icons": "^4.9.1",
+      "@material-ui/lab": "^4.0.0-alpha.56",
+      "@zeit/next-sass": "^1.0.1",
+      "apollo-boost": "0.4.7",
+      "apollo-cache-inmemory": "^1.6.6",
+      "apollo-client": "^2.6.10",
+      "apollo-link": "^1.2.14",
+      "apollo-link-http": "^1.5.17",
+      "apollo-link-schema": "^1.2.5",
+      "apollo-server": "^2.14.5",
+      "apollo-server-express": "^2.14.5",
+      "apollo-server-micro": "^2.14.5",
+      "axios": "^0.19.2",
+      "clsx": "^1.1.1",
+      "dotenv": "^8.2.0",
+      "express": "^4.17.1",
+      "fabric": "^3.6.3",
+      "graphql": "^15.1.0",
+      "graphql-playground-middleware-express": "^1.7.18",
+      "graphql-tag": "^2.10.3",
+      "graphql-tools": "^6.0.10",
+      "isomorphic-fetch": "^2.2.1",
+      "isomorphic-unfetch": "^3.0.0",
+      "js-cookie": "^2.2.1",
+      "jsonwebtoken": "^8.5.1",
+      "next": "9.4.4",
+      "next-apollo": "3.1.10",
+      "ray-tracing-renderer": "^0.10.0",
+      "react": "16.13.1",
+      "react-apollo": "^3.1.5",
+      "react-cookie": "^4.0.3",
+      "react-dom": "16.13.1",
+      "three": "^0.117.1",
+      "universal-cookie": "^4.0.3"
+    },
+    "devDependencies": {
+      "node-sass": "^4.14.1"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

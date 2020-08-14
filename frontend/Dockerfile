@@ -1,0 +1,14 @@
+FROM node:14.5
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY ./package*.json ./
+COPY ./yarn.lock ./
+
+RUN yarn install --frozen-lockfile
+
+COPY ./ ./
+
+CMD ["yarn", "dev"]

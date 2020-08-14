@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "models",
+  "info": {
+    "name": "model"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "model": {
+      "model": "file",
+      "via": "related",
+      "allowedTypes": [
+        "files"
+      ],
+      "plugin": "upload",
+      "required": true
+    },
+    "img": {
+      "model": "file",
+      "via": "related",
+      "allowedTypes": [
+        "images"
+      ],
+      "plugin": "upload",
+      "required": true
+    },
+    "uvw": {
+      "collection": "file",
+      "via": "related",
+      "allowedTypes": [
+        "images"
+      ],
+      "plugin": "upload",
+      "required": false
+    }
+  }
+}

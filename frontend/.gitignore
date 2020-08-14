@@ -1,0 +1,7 @@
+.next
+.git
+.idea
+.vs
+node_modules
+build
+yarn.lock

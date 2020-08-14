@@ -1,0 +1,8 @@
+node_modules
+.dockerignore
+.gitignore
+Dockerfile
+.cache
+.tmp
+.env
+build
