@@ -22,6 +22,7 @@ import classes from './ViewportScene.module.sass'
 import getColorReducer from "../../../reducers/getColorReducer";
 import getDataReducer from "../../../reducers/getDataReducer";
 import getCurrentObjectReducer from "../../../reducers/getCurrentObjectReducer";
+import getCameraPositionReducer from "../../../reducers/getCameraPositionReducer";
 
 function combineReducers(reducers) {
     return (state = {}, action) => {
@@ -64,8 +65,11 @@ const ViewportScene = () => {
         getCurrentObject: {
             name: null,
             object: null
+        },
+        getCamera: {
+            camera: null,
+            controls: null
         }
-
     }
 
     const [state, dispatch] = useReducer(combineReducers({
@@ -74,7 +78,8 @@ const ViewportScene = () => {
         getRenderer: getRendererReducer,
         getCurrentObject: getCurrentObjectReducer,
         getColor: getColorReducer,
-        getData: getDataReducer
+        getData: getDataReducer,
+        getCamera: getCameraPositionReducer
     }), initialState);
 
     const [combinedState, combinedDispatch] = useMemo(() => [state, dispatch], [state]);

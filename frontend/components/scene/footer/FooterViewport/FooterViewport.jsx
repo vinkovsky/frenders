@@ -91,6 +91,7 @@ function FooterViewport() {
                             margin="normal"
                             variant="outlined"
                             size="small"
+                            // value={state.getCurrentObject.object !== null ? state.getCurrentObject.object.position.x : 0}
                         />
                         <TextField
                             label="Y"

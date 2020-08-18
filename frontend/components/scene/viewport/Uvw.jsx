@@ -314,18 +314,13 @@ const Uvw = () => {
         const getPositionOnScene = (sceneContainer, evt) => {
             let array = getMousePosition(sceneContainer, evt.clientX, evt.clientY);
             onClickPosition.fromArray(array);
-            let intersects = getIntersects(onClickPosition, state.getData.scene.children);
+            let intersects = getIntersects(onClickPosition, state.getData.scene.children[1].children[0].children);
 
             if (intersects.length > 0 && intersects[0].uv) {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
 
-                // EffectComposer(state.getData.highlighter, state.getData.renderer, state.getData.scene, state.getData.camera);
 
-                // if (!(currentObject instanceof Array)) currentObject = [currentObject];
-                // state.getData.highlighter.selectedObjects = currentObject;
-
-                // console.log(currentObject)
 
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
@@ -333,6 +328,8 @@ const Uvw = () => {
                     x: uv.x * 512,
                     y: uv.y * 512
                 }
+            } else {
+                currentObject = [];
             }
             return null;
         }
@@ -349,6 +346,7 @@ const Uvw = () => {
             raycaster.setFromCamera(mouse, state.getData.camera);
             return raycaster.intersectObjects(objects, true);
         }
+
 
         fabric.Canvas.prototype.getPointer = function(e, ignoreZoom) {
             if (this._absolutePointer && !ignoreZoom) {
@@ -418,6 +416,63 @@ const Uvw = () => {
 
 
 
+fabric.Object.prototype.originX = 'center';
+fabric.Object.prototype.originY = 'center';
+
+fabric.Object.prototype.transparentCorners = false;
+fabric.Object.prototype.borderScaleFactor = 2;
+fabric.Object.prototype.borderColor = "#38ADFC";
+fabric.Object.prototype.cornerColor = "#ffffff";
+fabric.Object.prototype.cornerStrokeColor = "#38ADFC";
+fabric.Object.prototype.borderOpacityWhenMoving = 1;
+
+    fabric.textureSize = 8192;
+
+fabric.Object.prototype.rotatingPointOffset = 70;
+fabric.Object.prototype.cornerStyle = "circle";
+fabric.Object.prototype.cornerSize = 20;
+
+fabric.Object.prototype.noScaleCache = false;
+fabric.Object.prototype.objectCaching = false;
+
+fabric.Object.prototype._drawControl = function (
+    control,
+    ctx,
+    methodName,
+    left,
+    top,
+    styleOverride
+) {
+    styleOverride = styleOverride || {};
+    if (!this.isControlVisible(control)) {
+        return;
+    }
+    let size = this.cornerSize,
+        stroke = !this.transparentCorners && this.cornerStrokeColor;
+    switch (styleOverride.cornerStyle || this.cornerStyle) {
+        case "circle":
+            if (control == this.__corner) {
+                ctx.save();
+                ctx.strokeStyle = ctx.fillStyle = "#007bff";
+            }
+            ctx.beginPath();
+            ctx.arc(left + size / 2, top + size / 2, size / 2, 0, 2 * Math.PI, false);
+            ctx[methodName]();
+            if (stroke) {
+                ctx.stroke();
+            }
+            if (control == this.__corner) {
+                ctx.restore();
+            }
+            break;
+        default:
+            this.transparentCorners || ctx.clearRect(left, top, size, size);
+            ctx[methodName + "Rect"](left, top, size, size);
+            if (stroke) {
+                ctx.strokeRect(left, top, size, size);
+            }
+    }
+};
 
 
 

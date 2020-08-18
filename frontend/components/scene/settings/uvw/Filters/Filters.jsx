@@ -57,7 +57,7 @@ export default function Filters() {
                 let arr = [];
 
                 if(e.selected.length > 1) {
-                    console.log(selectedObject);
+                   //console.log(selectedObject);
                     selectedObject.map((item) => {
                         if (item.filters.length !== 0) {
                             arr.push(Array.from(filtersMap.get(item)));
@@ -66,11 +66,11 @@ export default function Filters() {
                         }
                     })
 
-                    console.log(arr);
+                  // console.log(arr);
 
-                    const intersection = intersect(arr[0], arr[1]);
+                    const intersection = intersect(...arr);
 
-                    console.log(intersection);
+                //    console.log(intersection);
 
                     for (let intersectionKey of intersection) {
                         setFilterCheckers((filterCheckers) => (

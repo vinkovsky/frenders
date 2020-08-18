@@ -44,44 +44,61 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
      
     }, [state.getRenderer])
  
-    useEffect(() => {
-        sceneRef.current = Scene(model, canvas)
-    }, [])
+
 
     useEffect(() => {
-        if (!state.getRenderer.envMap) return;
-        const { EnvironmentLight } = require("ray-tracing-renderer");
-        const { RayTracingRenderer } = require("ray-tracing-renderer");
+        if (!state.getCamera.camera) return;
+        const { EnvironmentLight, RayTracingRenderer } = require("ray-tracing-renderer");
+
         rendererRef.current = new RayTracingRenderer({
             canvas: canvasRef.current
         });
-    
-        cameraRef.current = Camera()
-        const controls = Controls(cameraRef.current, canvasRef.current)
-        let hdr = new EnvironmentLight(env);
 
+       // if(state.getCamera)
+
+        cameraRef.current = Camera()
+        let controls = Controls(cameraRef.current, canvasRef.current)[0]
+        sceneRef.current = Scene(model, canvas)
+        if (state.getCamera.controls) {
+            controls.target.copy(state.getCamera.controls.target);
+            cameraRef.current.lookAt(state.getCamera.controls.target);
+            cameraRef.current.position.copy(state.getCamera.camera.position)
+        }
+
+        let hdr = new EnvironmentLight(env);
+        console.log(state.getCamera)
         sceneRef.current.add(hdr);
         rendererRef.current.setSize(1000, 1000)
         
         const animate = (time) => {
+            if (!rendererRef.current) return;
             if (rendererRef.current.sync) {
                 rendererRef.current.sync(time);
             }
-
             controls.update()
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestAnimationFrame(animate);
         }
-        
+
         animate();
 
         return () => {
+            dispatch({
+                type: 'getCamera',
+                payload: {
+                    camera: cameraRef.current,
+                    controls
+                }
+            });
             cancelAnimationFrame(animate);
             rendererRef.current.dispose();
             sceneRef.current.dispose();
             controls.dispose();
+            rendererRef.current = null;
+            sceneRef.current = null;
+            controls = null;
         }
-    }, [])
+    }, [state.getCamera])
 
     useEffect(() => {
         if(!(rendererRef.current && width && height)) return;
@@ -95,4 +112,4 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
     return <canvas ref={canvasRef} />;
 }
 
-export default memo(RayTraceRenderer);
+export default RayTraceRenderer;

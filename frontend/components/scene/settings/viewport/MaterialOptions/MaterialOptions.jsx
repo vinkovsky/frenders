@@ -46,7 +46,7 @@ export default function MaterialOptions() {
                 state.getColor.color = prop.color
             }
         }
-        console.log(optionsMap);
+      //  console.log(optionsMap);
     }, [state.getCurrentObject])
 
     useEffect(() => {

@@ -1,13 +1,15 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+import TextField from '@material-ui/core/TextField';
 import Slider from '@material-ui/core/Slider';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import ViewportSceneContext from "../../../../../context/ViewportSceneContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -28,38 +30,47 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%'
+    },
+    box: {
+        marginLeft: '15px',
+        marginRight: '15px'
+    },
+    textField: {
+        marginTop: '8px',
+        padding: '5px',
+        width: '140px'
+    },
+    label: {
+        marginLeft: 0
+    },
+    text: {
+        textAlign: 'center'
     }
 }));
 
 export default function ChooseMap() {
     const classes = useStyles();
-    const [value, setValue] = React.useState(0);
-    const [state, setState] = React.useState({
-        checkedA: true,
-        checkedB: true,
-        checkedC: true,
-        checkedD: true
-    });
+    const [state, dispatch] = useContext(ViewportSceneContext);
+    const [value, setValue] = useState(1);
 
     const [dataMap, setDataMap] = useState({
-            'diffuse': {
-                on: true,
-                intensity: 100
-            },
-            'roughness': {
-                on: true,
-                intensity: 100
-            },
-            'metalness': {
-                on: true,
-                intensity: 100
-            },
-            'normal': {
-                on: true,
-                intensity: 100
-            }
-        }
-    )
+        // 'map': {
+        //     on: true,
+        //     intensity: 100
+        // },
+        'roughness': {
+            on: true,
+            intensity: 100
+        },
+        'metalness': {
+            on: true,
+            intensity: 100
+        },
+        // 'normalMap': {
+        //     on: true,
+        //     intensity: 100
+        // }
+    })
 
     const handleChangeTabs = (event, newValue) => {
         setValue(newValue);
@@ -71,18 +82,21 @@ export default function ChooseMap() {
                 on: event.target.checked,
                 intensity: dataMap[event.target.name].intensity
             }
-        })
-        console.log(dataMap)
+        });
+        console.log(dataMap);
+        console.log(state.getCurrentObject.object);
     };
 
-    const handleIntensityChange = (event, newValue) => {
+    const handleIntensityChange = (event) => {
         setDataMap({
-            ...dataMap, [event.target.ariaLabel]: {
-                on: dataMap[event.target.ariaLabel].on,
-                intensity: newValue
+            ...dataMap, [event.target.name]: {
+                on: dataMap[event.target.name].on,
+                intensity: +event.target.value
             }
         })
-        console.log(dataMap)
+        if(state.getCurrentObject.object !== null) {
+            state.getCurrentObject.object.material[event.target.name] = (+event.target.value) * 0.01;
+        }
     }
 
     return (
@@ -99,76 +113,84 @@ export default function ChooseMap() {
                 <Tab label="metalness" />
                 <Tab label="normal" />
             </Tabs>
-            <div className={ value === 0 ? classes.block : classes.none  }>
-                <Box>
-                    <Typography id="diffuse" gutterBottom>
-                        Интенсивность
-                    </Typography>
-                    <Slider
-                        defaultValue={100}
-                        aria-label="diffuse"
-                        valueLabelDisplay="auto"
-                        step={10}
-                        marks
-                        min={0}
-                        max={100}
-                        onChange={ handleIntensityChange }
-                    />
-                    <FormControlLabel control={<Switch defaultChecked onChange={handleChangeVisible} name="diffuse" color="primary" />} label="Включено" />
+            <div className={ value === 0 ? classes.block : classes.none }>
+                <Box className={classes.box}>
+                    {/*<Typography id="map" className={classes.text}>*/}
+                    {/*    Интенсивность*/}
+                    {/*</Typography>*/}
+                    {/*<TextField*/}
+                    {/*    type="number"*/}
+                    {/*    id="outlined-size-normal"*/}
+                    {/*    defaultValue="100"*/}
+                    {/*    inputProps={{ min: "0", max: "100", step: "1" }}*/}
+                    {/*    className={ classes.textField }*/}
+                    {/*    margin="normal"*/}
+                    {/*    variant="outlined"*/}
+                    {/*    size="small"*/}
+                    {/*    name="map"*/}
+                    {/*    onChange={handleIntensityChange}*/}
+                    {/*/>*/}
+                    {/*<FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="map" color="primary" />} label="Включено" />*/}
                 </Box>
             </div>
             <div className={ value === 1 ? classes.block : classes.none }>
-                <Box>
-                    <Typography id="roughness" gutterBottom>
+                <Box className={classes.box}>
+                    <Typography id="roughness" className={classes.text}>
                         Интенсивность
                     </Typography>
-                    <Slider
-                        defaultValue={100}
-                        aria-label="roughness"
-                        valueLabelDisplay="auto"
-                        step={10}
-                        marks
-                        min={0}
-                        max={100}
-                        onChange={ handleIntensityChange }
+                    <TextField
+                        type="number"
+                        id="outlined-size-normal"
+                        defaultValue="100"
+                        inputProps={{ min: 0, max: 100, step: 1 }}
+                        className={ classes.textField }
+                        margin="normal"
+                        variant="outlined"
+                        size="small"
+                        name="roughness"
+                        onChange={handleIntensityChange}
                     />
-                    <FormControlLabel control={<Switch defaultChecked onChange={handleChangeVisible} name="roughness" color="primary" />} label="Включено" />
+                    <FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="roughness" color="primary" />} label="Включено" />
                 </Box>
             </div>
             <div className={ value === 2 ? classes.block : classes.none }>
-                <Box>
-                    <Typography id="metalness" gutterBottom>
+                <Box className={classes.box}>
+                    <Typography id="metalness" className={classes.text}>
                         Интенсивность
                     </Typography>
-                    <Slider
-                        defaultValue={100}
-                        aria-label="metalness"
-                        valueLabelDisplay="auto"
-                        step={10}
-                        marks
-                        min={0}
-                        max={100}
-                        onChange={ handleIntensityChange }
+                    <TextField
+                        type="number"
+                        id="outlined-size-normal"
+                        defaultValue="100"
+                        inputProps={{ min: "0", max: "100", step: "1" }}
+                        className={ classes.textField }
+                        margin="normal"
+                        variant="outlined"
+                        size="small"
+                        name="metalness"
+                        onChange={handleIntensityChange}
                     />
-                    <FormControlLabel control={<Switch defaultChecked onChange={handleChangeVisible} name="metalness" color="primary" />} label="Включено" />
+                    <FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="metalness" color="primary" />} label="Включено" />
                 </Box>
             </div>
             <div className={ value === 3 ? classes.block : classes.none }>
-                <Box>
-                    <Typography id="normal" gutterBottom>
-                        Интенсивность
-                    </Typography>
-                    <Slider
-                        defaultValue={100}
-                        aria-label="normal"
-                        valueLabelDisplay="auto"
-                        step={10}
-                        marks
-                        min={0}
-                        max={100}
-                        onChange={ handleIntensityChange }
-                    />
-                    <FormControlLabel control={<Switch defaultChecked onChange={handleChangeVisible} name="normal" color="primary" />} label="Включено" />
+                <Box className={classes.box}>
+                    {/*<Typography id="normalMap" className={classes.text}>*/}
+                    {/*    Интенсивность*/}
+                    {/*</Typography>*/}
+                    {/*<TextField*/}
+                    {/*    type="number"*/}
+                    {/*    id="outlined-size-normal"*/}
+                    {/*    defaultValue="100"*/}
+                    {/*    inputProps={{ min: "0", max: "100", step: "1" }}*/}
+                    {/*    className={ classes.textField }*/}
+                    {/*    margin="normal"*/}
+                    {/*    variant="outlined"*/}
+                    {/*    size="small"*/}
+                    {/*    name="normalMap"*/}
+                    {/*    onChange={handleIntensityChange}*/}
+                    {/*/>*/}
+                    {/*<FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="normalMap" color="primary" />} label="Включено" />*/}
                 </Box>
             </div>
         </div>

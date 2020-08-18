@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import FabricExtend from './FabricExtend'
+// import FabricExtend from './FabricExtend'
 import {fabric} from 'fabric'
 import Fabric from "./Fabric";
 import fabricHOC from "../../hoc/fabricHOC";

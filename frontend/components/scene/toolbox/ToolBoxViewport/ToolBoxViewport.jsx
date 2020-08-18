@@ -20,7 +20,7 @@ const ToolBoxViewport = ({active}) => {
     };
 
     const handleMoveClick = () => {
-        state.getData.transformControls.attach(state.getData.model)
+
         state.getData.transformControls.setMode( "translate" );
 
         console.log(state.getData.transformControls);

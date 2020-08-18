@@ -145,6 +145,15 @@ import Loader from "../Loader";
 
 // const Renderer = ({ assets, type }) => {
 const Renderer = ({ assets, type }) => {
+    useEffect(() => {
+        assets.model.traverse(child => {
+            if (!child.isMesh) return;
+            child.material = new THREE.MeshStandardMaterial()
+            child.material.side = THREE.DoubleSide;
+        })
+    }, [])
+
+
 
     return (
         type ? 
