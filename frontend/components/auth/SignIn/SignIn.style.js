@@ -31,5 +31,10 @@ export const useStyles = makeStyles({
         padding: '20px',
         fontSize: '0.9rem',
         textAlign: 'center'
+    },
+    progress: {
+        top: `calc(50% - 25px)`,
+        left: `calc(50% - 25px)`,
+        position: 'absolute'
     }
 });

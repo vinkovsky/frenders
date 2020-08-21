@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Grid, Card, CardContent, CardActions, Button, Paper, Typography } from '@material-ui/core';
 import { useTheme } from '@material-ui/core/styles';
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 import { InputField } from "../InputField/InputField";
 import { useFieldChange } from "../../../hooks/auth/useFieldChange";
@@ -11,6 +12,7 @@ import { registerUser } from "../../../lib/auth";
 import AppContext from "../../../context/AppContext";
 
 import { useStyles } from "../SignIn/SignIn.style";
+
 
 const SignUp = () => {
     const classes = useStyles();
@@ -39,6 +41,10 @@ const SignUp = () => {
                 setLoading(false);
             });
     };
+
+    if(loading) {
+        return <CircularProgress className={ classes.progress } />;
+    }
 
     return (
         <>

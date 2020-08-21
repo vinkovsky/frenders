@@ -86,7 +86,7 @@ const Viewport = React.memo(({ envMaps }) => {
 
 
 
-export default Viewport;
+export default React.memo(Viewport);
 
 
 

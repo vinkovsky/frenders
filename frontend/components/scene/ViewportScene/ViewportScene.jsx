@@ -1,6 +1,7 @@
 import React, {useState, useReducer, useMemo} from 'react';
 import { useRouter } from "next/router";
 import { useQuery } from "@apollo/react-hooks";
+import { Vector3 } from "three";
 import { NoSsr, CssBaseline, Paper, Tabs, Tab, CircularProgress } from "@material-ui/core";
 
 import ToolBox from "../toolbox/ToolBox/ToolBox";
@@ -23,6 +24,8 @@ import getColorReducer from "../../../reducers/getColorReducer";
 import getDataReducer from "../../../reducers/getDataReducer";
 import getCurrentObjectReducer from "../../../reducers/getCurrentObjectReducer";
 import getCameraPositionReducer from "../../../reducers/getCameraPositionReducer";
+
+import getCoordsReducer from "../../../reducers/getCoordsReducer";
 
 function combineReducers(reducers) {
     return (state = {}, action) => {
@@ -49,18 +52,16 @@ const ViewportScene = () => {
             toneMappingValue: 4,
             exposureValue: 1.5,
             envMap: "https://res.cloudinary.com/frenders/raw/upload/v1595923417/shanghai_bund_2k_8d026479c4",
-            background: true,
-            backgroundColor: 'transparent'
+            // background: true
         },
-        getColor: 'transparent',
+        getColor: '#000000',
         getData: {
             container: null,
             scene: null,
             camera: null,
             transformControls: null,
             renderer: null,
-            model: null,
-            highlighter: null
+            model: null
         },
         getCurrentObject: {
             name: null,
@@ -69,7 +70,8 @@ const ViewportScene = () => {
         getCamera: {
             camera: null,
             controls: null
-        }
+        },
+        getCoords: new Vector3(0,0,0)
     }
 
     const [state, dispatch] = useReducer(combineReducers({
@@ -79,7 +81,8 @@ const ViewportScene = () => {
         getCurrentObject: getCurrentObjectReducer,
         getColor: getColorReducer,
         getData: getDataReducer,
-        getCamera: getCameraPositionReducer
+        getCamera: getCameraPositionReducer,
+        getCoords: getCoordsReducer
     }), initialState);
 
     const [combinedState, combinedDispatch] = useMemo(() => [state, dispatch], [state]);
@@ -91,9 +94,9 @@ const ViewportScene = () => {
     if (loading) {
         return <CircularProgress className={classes.progress}/>;
     }
-    else {
-        refetch();
-    }
+    // else {
+    //     refetch();
+    // }
 
     return (
         <NoSsr>

@@ -5,27 +5,9 @@ import CreateIcon from '@material-ui/icons/Create';
 import PaletteIcon from '@material-ui/icons/Palette';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import NearMeIcon from '@material-ui/icons/NearMe';
-import theme from '../../../../public/js/theme'
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 
-const useStyles = makeStyles({
-    button: {
-        marginBottom: '5px',
-        borderRadius: 0,
-        color: theme.palette.secondary.main,
-        backgroundColor: theme.palette.primary.main,
-        border: `none !important`,
-        '&:hover': {
-            color: 'black'
-        }
-    },
-    none: {
-        display: "none"
-    },
-    block: {
-        display: "block"
-    }
-});
+import { useStyles } from "./ToolBoxUvw.style";
 
 export default function ToolBoxUvw({active}) {
     const classes = useStyles();
@@ -37,7 +19,7 @@ export default function ToolBoxUvw({active}) {
 
     return (
         <aside className={ active === 1 ? classes.block : classes.none }>
-            <ToggleButtonGroup orientation="vertical" value={view} exclusive onChange={handleChange}>
+            <ToggleButtonGroup orientation="vertical" value={view} exclusive onChange={handleChange} className={ classes.group }>
                 <ToggleButton value="arrow" aria-label="arrow" className={ classes.button }>
                     <NearMeIcon />
                 </ToggleButton>

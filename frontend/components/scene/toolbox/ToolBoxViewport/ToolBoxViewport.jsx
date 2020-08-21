@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import NearMeIcon from '@material-ui/icons/NearMe';
 import OpenWithIcon from '@material-ui/icons/OpenWith';
 import RotateRightIcon from '@material-ui/icons/RotateRight';
@@ -15,31 +15,41 @@ const ToolBoxViewport = ({active}) => {
     const [view, setView] = useState('arrow');
     const [state, dispatch] = useContext(ViewportSceneContext);
 
+    // useEffect(() => {
+    //     state.getData.transformControls.visible = true;
+    // }, [state.getCurrentObject])
+
     const handleChange = (event, nextView) => {
         setView(nextView);
     };
 
-    const handleMoveClick = () => {
+    const handleSelectClick = () => {
+        state.getData.transformControls.visible = false;
+    }
 
+    const handleMoveClick = () => {
+        state.getData.transformControls.visible = true;
         state.getData.transformControls.setMode( "translate" );
 
         console.log(state.getData.transformControls);
     }
 
     const handleRotateClick = () => {
+        state.getData.transformControls.visible = true;
         state.getData.transformControls.setMode( "rotate" );
         console.log(state.getData.transformControls);
     }
 
     const handleScaleClick = () => {
+        state.getData.transformControls.visible = true;
         state.getData.transformControls.setMode( "scale" );
         console.log(state.getData.transformControls);
     }
 
     return (
         <aside className={ active === 0 ? classes.block : classes.none }>
-            <ToggleButtonGroup orientation="vertical" value={ view } exclusive onChange={ handleChange }>
-                <ToggleButton value="arrow" aria-label="arrow" className={ classes.button }>
+            <ToggleButtonGroup orientation="vertical" value={ view } exclusive onChange={ handleChange } className={ classes.group }>
+                <ToggleButton value="arrow" aria-label="arrow" className={ classes.button } onClick={handleSelectClick}>
                     <NearMeIcon />
                 </ToggleButton>
                 <ToggleButton value="move" aria-label="move" className={ classes.button } onClick={handleMoveClick}>

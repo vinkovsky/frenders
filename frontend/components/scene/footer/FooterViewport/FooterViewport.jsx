@@ -1,14 +1,25 @@
-import React, {useContext, useEffect, useState} from 'react'
+import React, {useContext, useEffect, useState, useRef} from 'react';
+import * as THREE from "three";
+import { Vector3 } from "three";
 import { AppBar, Card, CardContent, Tab, Tabs, TextField } from '@material-ui/core';
 
 import ViewportSceneContext from "../../../../context/ViewportSceneContext";
 
 import { useStyles } from "./FooterViewport.style";
+import { optionsMap } from "../../settings/viewport/MaterialOptions/MaterialOptions";
+
+export let optionsCoords = new Map();
 
 function FooterViewport() {
     const classes = useStyles();
     const [value, setValue] = useState(null);
     const [state, dispatch] = useContext(ViewportSceneContext);
+    const [disabled, setDisabled] = useState(true);
+    const [coords, setCoords] = useState({
+        x: 0,
+        y: 0,
+        z: 0
+    });
 
     let arr = [];
     if (state.getObjects.objects !== undefined) {
@@ -16,9 +27,17 @@ function FooterViewport() {
     }
 
     useEffect(() => {
-        if (!state.getCurrentObject) return;
+        if (!state.getObjects.objects) return;
+        state.getObjects.objects.map((item) => {
+            optionsCoords.set(item, new Vector3(0,0,0))
+        })
+    }, [state.getObjects])
+
+    useEffect(() => {
+      //  if (!state.getCurrentObject) return;
         if (state.getCurrentObject.name === null) {
-            setValue(null);
+            setValue(false);
+            setDisabled(true);
         }
         else {
             arr.map((item) => {
@@ -26,6 +45,24 @@ function FooterViewport() {
                     setValue(+item[0]);
                 }
             })
+            state.getData.model.traverse((child) => {
+                if (!child.isMesh) return;
+                const prop = optionsMap.get(child.name);
+                if (prop !== undefined) {
+                    child.material.transparent = prop.transparent;
+                    if (prop.transparent) child.material.opacity = 0.5;
+                    child.material.shadowCatcher = prop.shadowCatcher;
+                    if (prop.shadowCatcher) child.material.opacity = 0;
+                    child.material.color = new THREE.Color(prop.color);
+                }
+            });
+
+            const propCoords = optionsCoords.get(state.getCurrentObject.name);
+            if(propCoords !== undefined) {
+                setCoords(propCoords);
+            }
+
+            setDisabled(false);
         }
     }, [state.getCurrentObject])
 
@@ -42,8 +79,29 @@ function FooterViewport() {
                 })
             }
         })
-
     };
+
+    const coordsChange = (event) => {
+        setCoords({...coords, [event.target.name]: +event.target.value});
+    }
+
+    useEffect(() => {
+        if (state.getCurrentObject.object !== null){
+            optionsCoords.set(state.getCurrentObject.name, new Vector3(coords.x, coords.y, coords.z))
+            dispatch({
+                type: 'getCoords',
+                payload: new Vector3(coords.x, coords.y, coords.z)
+            })
+        }
+    }, [coords])
+
+    useEffect(() => {
+        setCoords({
+            x: state.getCoords.x,
+            y: state.getCoords.y,
+            z: state.getCoords.z
+        });
+    }, [state.getData.transformControls?.dragging])
 
     return (
         <footer className={ classes.footer }>
@@ -67,9 +125,7 @@ function FooterViewport() {
                     {
                         arr.map((item, index) => {
                             return (
-                                <div key={ item[0] } className={ value === index ? classes.block : classes.none }>
-                                    dfgdfg
-                                </div>
+                                <div key={ item[0] } className={ value === index ? classes.block : classes.none } />
                             )
                         })
                     }
@@ -91,7 +147,10 @@ function FooterViewport() {
                             margin="normal"
                             variant="outlined"
                             size="small"
-                            // value={state.getCurrentObject.object !== null ? state.getCurrentObject.object.position.x : 0}
+                            disabled={disabled}
+                            name="x"
+                            onChange={coordsChange}
+                            value={coords.x.toFixed(2)}
                         />
                         <TextField
                             label="Y"
@@ -102,6 +161,10 @@ function FooterViewport() {
                             margin="normal"
                             variant="outlined"
                             size="small"
+                            disabled={disabled}
+                            name="y"
+                            onChange={coordsChange}
+                            value={coords.y.toFixed(2)}
                         />
                         <TextField
                             label="Z"
@@ -112,6 +175,10 @@ function FooterViewport() {
                             margin="normal"
                             variant="outlined"
                             size="small"
+                            disabled={disabled}
+                            name="z"
+                            onChange={coordsChange}
+                            value={coords.z.toFixed(2)}
                         />
                     </CardContent>
                 </Card>

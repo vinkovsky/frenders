@@ -17,7 +17,10 @@ export const useStyles = makeStyles({
         height: '100%',
         borderRadius: '0',
         background: theme.palette.secondary.main,
-        opacity: 1
+        opacity: 1,
+        "& header": {
+            boxShadow: "none"
+        }
     },
     materials: {
         width: 'calc(100% - 280px)',

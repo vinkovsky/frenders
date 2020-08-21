@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import { fabric } from 'fabric';
 
 import {Raycaster, Vector2} from "three";
@@ -139,8 +139,6 @@ const Uvw = () => {
 
     if (data === undefined) refetch();
 
-
-
     const ref = useFabric((canvas) => {
         canvasRef.current = canvas;
         canvas.width = width;
@@ -148,37 +146,7 @@ const Uvw = () => {
         canvas.setWidth(512)
         canvas.setHeight(512)
         canvas.backgroundColor = '#a32342'
-        // canvas.add(new fabric.Rect({
-        //     top: 100,
-        //     left: 100,
-        //     fill: "#234123",
-        //     width: 100,
-        //     height: 100,
-        //     transparentCorners: false,
-        //     centeredScaling: true,
-        //     objectCaching: false
-        // }), new fabric.Rect({
-        //     top: 100,
-        //     left: 400,
-        //     fill: "#f3ff32",
-        //     width: 100,
-        //     height: 100,
-        //     transparentCorners: false,
-        //     centeredScaling: true,
-        //     objectCaching: false
-        // }), new fabric.Rect({
-        //     top: 500,
-        //     left: 100,
-        //     fill: "#233324",
-        //     width: 100,
-        //     height: 100,
-        //     transparentCorners: false,
-        //     centeredScaling: true,
-        //     objectCaching: false
-        // }))
     });
-
-
 
     useLayoutEffect(() => {
         if (data === undefined || data.model.uvw.length === 0) return;
@@ -257,7 +225,6 @@ const Uvw = () => {
         }, {
             crossOrigin: 'Anonymous'
         });
-        // fabric.textureSize = 512;
     }
 
     const handleChange = (event, newValue) => {
@@ -319,8 +286,6 @@ const Uvw = () => {
             if (intersects.length > 0 && intersects[0].uv) {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
-
-
 
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
@@ -413,71 +378,63 @@ const Uvw = () => {
 
     }, [state.getData, activeObject])
 
+    fabric.Object.prototype.originX = 'center';
+    fabric.Object.prototype.originY = 'center';
 
-
-
-fabric.Object.prototype.originX = 'center';
-fabric.Object.prototype.originY = 'center';
-
-fabric.Object.prototype.transparentCorners = false;
-fabric.Object.prototype.borderScaleFactor = 2;
-fabric.Object.prototype.borderColor = "#38ADFC";
-fabric.Object.prototype.cornerColor = "#ffffff";
-fabric.Object.prototype.cornerStrokeColor = "#38ADFC";
-fabric.Object.prototype.borderOpacityWhenMoving = 1;
+    fabric.Object.prototype.transparentCorners = false;
+    fabric.Object.prototype.borderScaleFactor = 2;
+    fabric.Object.prototype.borderColor = "#38ADFC";
+    fabric.Object.prototype.cornerColor = "#ffffff";
+    fabric.Object.prototype.cornerStrokeColor = "#38ADFC";
+    fabric.Object.prototype.borderOpacityWhenMoving = 1;
 
     fabric.textureSize = 8192;
 
-fabric.Object.prototype.rotatingPointOffset = 70;
-fabric.Object.prototype.cornerStyle = "circle";
-fabric.Object.prototype.cornerSize = 20;
+    fabric.Object.prototype.rotatingPointOffset = 70;
+    fabric.Object.prototype.cornerStyle = "circle";
+    fabric.Object.prototype.cornerSize = 20;
 
-fabric.Object.prototype.noScaleCache = false;
-fabric.Object.prototype.objectCaching = false;
+    fabric.Object.prototype.noScaleCache = false;
+    fabric.Object.prototype.objectCaching = false;
 
-fabric.Object.prototype._drawControl = function (
-    control,
-    ctx,
-    methodName,
-    left,
-    top,
-    styleOverride
-) {
-    styleOverride = styleOverride || {};
-    if (!this.isControlVisible(control)) {
-        return;
-    }
-    let size = this.cornerSize,
-        stroke = !this.transparentCorners && this.cornerStrokeColor;
-    switch (styleOverride.cornerStyle || this.cornerStyle) {
-        case "circle":
-            if (control == this.__corner) {
-                ctx.save();
-                ctx.strokeStyle = ctx.fillStyle = "#007bff";
-            }
-            ctx.beginPath();
-            ctx.arc(left + size / 2, top + size / 2, size / 2, 0, 2 * Math.PI, false);
-            ctx[methodName]();
-            if (stroke) {
-                ctx.stroke();
-            }
-            if (control == this.__corner) {
-                ctx.restore();
-            }
-            break;
-        default:
-            this.transparentCorners || ctx.clearRect(left, top, size, size);
-            ctx[methodName + "Rect"](left, top, size, size);
-            if (stroke) {
-                ctx.strokeRect(left, top, size, size);
-            }
-    }
-};
-
-
-
-
-
+    fabric.Object.prototype._drawControl = function (
+        control,
+        ctx,
+        methodName,
+        left,
+        top,
+        styleOverride
+    ) {
+        styleOverride = styleOverride || {};
+        if (!this.isControlVisible(control)) {
+            return;
+        }
+        let size = this.cornerSize,
+            stroke = !this.transparentCorners && this.cornerStrokeColor;
+        switch (styleOverride.cornerStyle || this.cornerStyle) {
+            case "circle":
+                if (control == this.__corner) {
+                    ctx.save();
+                    ctx.strokeStyle = ctx.fillStyle = "#007bff";
+                }
+                ctx.beginPath();
+                ctx.arc(left + size / 2, top + size / 2, size / 2, 0, 2 * Math.PI, false);
+                ctx[methodName]();
+                if (stroke) {
+                    ctx.stroke();
+                }
+                if (control == this.__corner) {
+                    ctx.restore();
+                }
+                break;
+            default:
+                this.transparentCorners || ctx.clearRect(left, top, size, size);
+                ctx[methodName + "Rect"](left, top, size, size);
+                if (stroke) {
+                    ctx.strokeRect(left, top, size, size);
+                }
+        }
+    };
 
 
     return (

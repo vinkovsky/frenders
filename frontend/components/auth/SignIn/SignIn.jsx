@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/router';
 import { Grid, Card, CardContent, CardActions, Button, Paper, Typography } from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 import { InputField } from "../InputField/InputField";
 import { useFieldChange } from "../../../hooks/auth/useFieldChange";
@@ -42,6 +43,10 @@ const SignIn = () => {
                 setError(useErrorMessage(error.response.data));
                 setLoading(false);
             });
+    }
+
+    if(loading) {
+        return <CircularProgress className={ classes.progress } />;
     }
 
     return (

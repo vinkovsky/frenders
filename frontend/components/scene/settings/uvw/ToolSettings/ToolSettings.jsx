@@ -7,7 +7,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import ColorPicker from '../../../ColorPicker/ColorPicker'
+// import ColorPicker from '../../../ColorPicker/ColorPicker'
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
@@ -136,7 +136,7 @@ export default function ToolSettings() {
                     </Select>
 
 
-                    <ColorPicker />
+                    {/*<ColorPicker />*/}
                 </FormGroup>
 
 

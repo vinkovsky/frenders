@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from "@material-ui/lab/TreeItem";
 import VisibilityIcon from '@material-ui/icons/Visibility';
@@ -24,9 +24,10 @@ export default function ChooseObject() {
     const classes = useStyles();
     const router = useRouter();
     const [state, dispatch] = useContext(ViewportSceneContext);
-    const [selected, setSelected] = useState('1');
+    const [selected, setSelected] = useState(false);
     const [visible, setVisible] = useState(true);
     // const [checked, setChecked] = useState(null);
+    const models = useRef([]);
 
     const { data, loading, error, refetch } = useQuery(ModelNameQuery, {
         variables: {
@@ -76,18 +77,18 @@ export default function ChooseObject() {
     //     console.log(checked)
     // };
 
-    const handleClick = (id) => {
-        setVisible(!visible);
-
-        if (state.getCurrentObject.name === null) {
-            state.getData.model.traverse((child) => {
-                if (!child.isMesh) return;
-                child.visible = !visible;
-            });
-        } else {
-            state.getCurrentObject.object.visible = !visible;
-        }
-    }
+    // const handleClick = (id) => {
+    //     setVisible(!visible);
+    //
+    //     if (state.getCurrentObject.name === null) {
+    //         state.getData.model.traverse((child) => {
+    //             if (!child.isMesh) return;
+    //             child.visible = !visible;
+    //         });
+    //     } else {
+    //         state.getCurrentObject.object.visible = !visible;
+    //     }
+    // }
 
     const renderLabel = item => {
         return (
@@ -101,7 +102,13 @@ export default function ChooseObject() {
                  onClick={event => {
                      event.preventDefault();
 
+
                      if (item.title === data.model.name) {
+                         // models.current = [];
+                         // state.getData.model.traverse((child) => {
+                         //     if (!child.isMesh) return;
+                         //     models.current.push(child);
+                         // });
                          setSelected('1');
                          dispatch({
                              type: 'getCurrentObject',

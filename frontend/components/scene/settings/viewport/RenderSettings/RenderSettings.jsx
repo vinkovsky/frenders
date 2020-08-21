@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import { makeStyles, useTheme  } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
@@ -7,7 +7,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import ColorPicker from '../../../ColorPicker/ColorPicker'
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import ViewportSceneContext from "../../../../../context/ViewportSceneContext";
@@ -15,6 +14,8 @@ import Grid from '@material-ui/core/Grid';
 
 import { useStyles } from "./RenderSettings.style";
 import {useRouter} from "next/router";
+import {Box} from "@material-ui/core";
+import {SketchPicker} from "react-color";
 
 function RenderSettings({ envMaps }) {
     const classes = useStyles();
@@ -22,8 +23,14 @@ function RenderSettings({ envMaps }) {
     const [state, dispatch] = useContext(ViewportSceneContext);
     const [exposureValue, setExposureValue] = useState(1.5);
     const [toneMappingValue, setToneMappingValue] = useState('4');
-    const [background, setBackground] = useState(false);
+    // const [background, setBackground] = useState(true);
+    const [switchBackground, setSwitchBackground] = useState({
+        disabled: true,
+        pointer: "none"
+    });
     const [envMap, setEnvMap] = useState("https://res.cloudinary.com/frenders/raw/upload/v1595923417/shanghai_bund_2k_8d026479c4");
+    const [viewPanelBackground, setViewPanelBackground] = useState(false);
+    const [color, setColor] = useState('#000000');
 
     const handleChange = (event) => {
         setToneMappingValue(event.target.value);
@@ -31,16 +38,42 @@ function RenderSettings({ envMaps }) {
 
     const handleEnvMapChange = (event) => {
         setEnvMap(event.target.value);
-        // router.push(router.asPath)
     }
 
-    const handleBackgroundChange = () => {
-        setBackground(!background)
-    }
+    // const handleBackgroundChange = () => {
+    //     setBackground(!background)
+    // }
 
     const handleSliderExposureChange = (event, newValue) => {
         setExposureValue(newValue);
     };
+
+    const handleClick = () => {
+        setViewPanelBackground(!viewPanelBackground)
+    };
+
+    const handleClose = () => {
+        setViewPanelBackground(false)
+    };
+
+    useEffect(() => {
+        if (envMap === "none") {
+            setSwitchBackground({
+                disabled: false,
+                pointer: "auto"
+            })
+        }
+        else {
+            setSwitchBackground({
+                disabled: true,
+                pointer: "none"
+            });
+        }
+    }, [envMap])
+
+    const handleChangeComplete = useCallback((color) => {
+        setColor(color.hex);
+    }, []);
 
     useEffect(() => {
         dispatch({
@@ -49,10 +82,19 @@ function RenderSettings({ envMaps }) {
                 toneMappingValue: parseInt(toneMappingValue),
                 exposureValue: exposureValue,
                 envMap: envMap,
-                background: background,
+                // background: background
             }
         });
-    }, [toneMappingValue, exposureValue, envMap, background])
+    }, [toneMappingValue, exposureValue, envMap])
+
+    useEffect(() => {
+        return () => {
+            dispatch({
+                type: 'getColor',
+                payload: color
+            })
+        }
+    }, [color])
 
     return (
         <div className={ classes.root }>
@@ -97,9 +139,9 @@ function RenderSettings({ envMaps }) {
                     value={envMap}
                     onChange={handleEnvMapChange}
                     className={classes.select}
-                    aria-label='Environment'
+                    aria-label='environment'
                 >
-                    <MenuItem value="#000000">Нет</MenuItem>
+                    <MenuItem value="none">Нет</MenuItem>
                     {
                         envMaps.environments.map((item) => (
                             <MenuItem key={item.name} value={item.file.url}>
@@ -109,15 +151,23 @@ function RenderSettings({ envMaps }) {
                     }
                 </Select>
             </FormControl>
-            <FormControl className={ classes.formControl } component="fieldset">
+            <FormControl className={ classes.formControl } component="fieldset" disabled={switchBackground.disabled}>
                 <Grid container spacing={2} alignItems="center">
+                    {/*<Grid item xs>*/}
+                    {/*    <FormControlLabel control={*/}
+                    {/*        <Switch checked={background} color="primary" name="background"*/}
+                    {/*                onChange={handleBackgroundChange} />*/}
+                    {/*    } label="Фон" />*/}
+                    {/*</Grid>*/}
                     <Grid item xs>
                         <FormControlLabel control={
-                            <Switch checked={background} color="primary" name="background" onChange={handleBackgroundChange} />
-                        } label="Фон" />
-                    </Grid>
-                    <Grid item xs>
-                        <ColorPicker />
+                            <Box style={{ background: color, pointerEvents: switchBackground.pointer }}
+                                 className={ classes.swatch } onClick={ handleClick } />
+                        } label="Цвет" />
+                        { viewPanelBackground ? <div className={ classes.popover }>
+                            <div className={ classes.cover } onClick={ handleClose }/>
+                            <SketchPicker color={ color } onChange={ handleChangeComplete } />
+                        </div> : null }
                     </Grid>
                 </Grid>
             </FormControl>
