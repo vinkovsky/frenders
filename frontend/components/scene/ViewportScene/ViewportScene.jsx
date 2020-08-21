@@ -24,7 +24,7 @@ import getColorReducer from "../../../reducers/getColorReducer";
 import getDataReducer from "../../../reducers/getDataReducer";
 import getCurrentObjectReducer from "../../../reducers/getCurrentObjectReducer";
 import getCameraPositionReducer from "../../../reducers/getCameraPositionReducer";
-
+import getActiveToolboxReducer from "../../../reducers/getActiveToolboxReducer";
 import getCoordsReducer from "../../../reducers/getCoordsReducer";
 
 function combineReducers(reducers) {
@@ -71,7 +71,10 @@ const ViewportScene = () => {
             camera: null,
             controls: null
         },
-        getCoords: new Vector3(0,0,0)
+        getCoords: new Vector3(0,0,0),
+        getToolbox: {
+            active: false,
+        }
     }
 
     const [state, dispatch] = useReducer(combineReducers({
@@ -82,7 +85,8 @@ const ViewportScene = () => {
         getColor: getColorReducer,
         getData: getDataReducer,
         getCamera: getCameraPositionReducer,
-        getCoords: getCoordsReducer
+        getCoords: getCoordsReducer,
+        getToolbox: getActiveToolboxReducer
     }), initialState);
 
     const [combinedState, combinedDispatch] = useMemo(() => [state, dispatch], [state]);

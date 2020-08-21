@@ -32,6 +32,7 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
     const [object, setObject] = useState([]);
     const meshesRef = useRef([]);
     const clickedRef = useRef(false);
+    const controledObjectRef = useRef(null);
 
     useEffect(() => {
         rendererRef.current = new WebGLRenderer({
@@ -90,11 +91,14 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
     useEffect(() => {
         if (!state.getCurrentObject.object) return;
-        if ( controlsRef.current[1].object === undefined || controlsRef.current[1].object !== state.getCurrentObject.object ) {
+        if ( state.getToolbox.active && (controlsRef.current[1].object === undefined ||
+            controlsRef.current[1].object !== state.getCurrentObject.object ) ) {
             controlsRef.current[1].attach( state.getCurrentObject.object );
+        } else {
+            controlsRef.current[1].detach( state.getCurrentObject.object );
         }
         outlinePass.current.selectedObjects = [state.getCurrentObject.object]
-    }, [state.getCurrentObject.object])
+    }, [state.getCurrentObject.object, state.getToolbox.active])
 
     useEffect(() => {
         if (!state.getCurrentObject.object) return;
@@ -102,9 +106,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         state.getCurrentObject.object.position.y = state.getCoords.y;
         state.getCurrentObject.object.position.z = state.getCoords.z;
 
-        // controlsRef.current[1].addEventListener('change',  event => {
-        //     optionsCoords.set(state.getCurrentObject.name, event.target.object.position);
-        // });
     }, [state.getCoords])
 
     useEffect(() => {
@@ -112,18 +113,18 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         const { EffectComposer } = require('three/examples/jsm/postprocessing/EffectComposer');
         const { RenderPass } = require('three/examples/jsm/postprocessing/RenderPass');
         const { ShaderPass } = require('three/examples/jsm/postprocessing/ShaderPass');
-        const { OutlinePass } = require('three/examples/jsm/postprocessing/OutlinePass');
+        const {outline}  = require('../OutlinePatch');
         const { FXAAShader } = require('three/examples/jsm/shaders/FXAAShader');
         composerRef.current = new EffectComposer(rendererRef.current);
 
         composerRef.current.addPass(new RenderPass(sceneRef.current, cameraRef.current));
 
-        outlinePass.current = new OutlinePass(new Vector2(window.innerWidth, window.innerHeight), sceneRef.current, cameraRef.current);
+        outlinePass.current = new outline(new Vector2(window.innerWidth, window.innerHeight), sceneRef.current, cameraRef.current);
         outlinePass.current.hiddenEdgeColor.set('#007BFF');
 
         composerRef.current.addPass(outlinePass.current);
         effectFXAA.current = new ShaderPass(FXAAShader);
-     //   effectFXAA.current.uniforms['resolution'].value.set(  window.innerWidth,   window.innerHeight);
+     // effectFXAA.current.uniforms['resolution'].value.set(  window.innerWidth,   window.innerHeight);
         composerRef.current.addPass(effectFXAA.current);
 
         return () => {

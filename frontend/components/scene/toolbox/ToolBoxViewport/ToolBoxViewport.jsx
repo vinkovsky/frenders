@@ -21,6 +21,21 @@ const ToolBoxViewport = ({active}) => {
 
     const handleChange = (event, nextView) => {
         setView(nextView);
+        if (nextView == 'arrow') {
+            dispatch({
+                type: 'getToolbox',
+                payload: {
+                    active: false
+                }
+            });
+        } else {
+            dispatch({
+                type: 'getToolbox',
+                payload: {
+                    active: true
+                }
+            });
+        }
     };
 
     const handleSelectClick = () => {
