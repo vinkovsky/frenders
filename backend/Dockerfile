@@ -1,5 +1,6 @@
-FROM node:14.5
+FROM node:alpine
 
+RUN apk add --update python make g++ && rm -rf /var/cache/apk/*
 RUN mkdir /app
 
 WORKDIR /app
@@ -11,4 +12,4 @@ RUN yarn install --frozen-lockfile
 
 COPY ./ ./
 
-CMD ["yarn", "build", "yarn", "start"]
+CMD ["yarn", "develop"]
