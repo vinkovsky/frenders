@@ -15,7 +15,8 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
     const [state, dispatch] = useContext(ViewportSceneContext);
     const { width, height } = useResize();
     const isFirstRun = useRef(true);
-    
+    const controlsRef = useRef();
+
     useEffect(() => {
         if (!state.getRenderer.envMap) return;
         if (isFirstRun.current) {
@@ -27,7 +28,7 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
         (async function () {
             const env = await Loader([RGBELoader], state.getRenderer.envMap);
             const currentEnv = sceneRef.current.getObjectById(44, true);
-            
+
             if (currentEnv) {
                 sceneRef.current.remove(currentEnv)
             }
@@ -35,19 +36,19 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
             // hdr.name = 'environment';
 
             sceneRef.current.add(hdr);
-           
-         
+
+
             rendererRef.current.needsUpdate = true;
           //  sceneRef.current.background = hdr;
             env.dispose();
         })()
-     
+
     }, [state.getRenderer])
- 
+
 
 
     useEffect(() => {
-        if (!state.getCamera.camera) return;
+      //  if (!state.getCamera.camera) return;
         const { EnvironmentLight, RayTracingRenderer } = require("ray-tracing-renderer");
 
         rendererRef.current = new RayTracingRenderer({
@@ -57,48 +58,55 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
        // if(state.getCamera)
 
         cameraRef.current = Camera()
-        let controls = Controls(cameraRef.current, canvasRef.current)[0]
+        controlsRef.current = Controls(cameraRef.current, canvasRef.current)[0]
         sceneRef.current = Scene(model, canvas)
-        if (state.getCamera.controls) {
-            controls.target.copy(state.getCamera.controls.target);
-            cameraRef.current.lookAt(state.getCamera.controls.target);
-            cameraRef.current.position.copy(state.getCamera.camera.position)
-        }
 
         let hdr = new EnvironmentLight(env);
-        console.log(state.getCamera)
+
         sceneRef.current.add(hdr);
         rendererRef.current.setSize(1000, 1000)
-        
+
         const animate = (time) => {
             if (!rendererRef.current) return;
             if (rendererRef.current.sync) {
                 rendererRef.current.sync(time);
             }
-            controls.update()
+            controlsRef.current.update()
             rendererRef.current.render(sceneRef.current, cameraRef.current);
             requestAnimationFrame(animate);
         }
 
         animate();
-
+        console.log(state.getCamera)
         return () => {
-            dispatch({
-                type: 'getCamera',
-                payload: {
-                    camera: cameraRef.current,
-                    controls
-                }
-            });
+
+                dispatch({
+                    type: 'getCamera',
+                    payload: {
+                        camera: cameraRef.current,
+                        controls: controlsRef.current
+                    }
+                });
+
             cancelAnimationFrame(animate);
             rendererRef.current.dispose();
             sceneRef.current.dispose();
-            controls.dispose();
+            controlsRef.current.dispose();
             rendererRef.current = null;
             sceneRef.current = null;
-            controls = null;
+            controlsRef.current = null;
         }
-    }, [state.getCamera])
+    }, [])
+
+    useEffect(() => {
+        // if (!controlsRef.current) return;
+        if (state.getCamera.controls && state.getCamera.camera) {
+            controlsRef.current.target.copy(state.getCamera.controls.target);
+            cameraRef.current.lookAt(state.getCamera.controls.target);
+            cameraRef.current.position.copy(state.getCamera.camera.position)
+        }
+
+    }, [ state.getCamera, controlsRef.current])
 
     useEffect(() => {
         if(!(rendererRef.current && width && height)) return;
@@ -107,8 +115,8 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
         cameraRef.current.aspect = width / height;
         cameraRef.current.updateProjectionMatrix();
     }, [width, height, rendererRef.current])
-    
-      
+
+
     return <canvas ref={canvasRef} />;
 }
 

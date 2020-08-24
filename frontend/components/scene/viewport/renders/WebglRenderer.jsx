@@ -51,12 +51,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
             })
         } );
 
-        if (state.getCamera.controls) {
-            controlsRef.current[0].target.copy(state.getCamera.controls.target);
-            cameraRef.current.lookAt(state.getCamera.controls.target);
-            cameraRef.current.position.copy(state.getCamera.camera.position)
-        }
-
         dispatch({
             type: 'getData',
             payload: {
@@ -90,6 +84,16 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
     }, []);
 
     useEffect(() => {
+
+        if (state.getCamera.controls && state.getCamera.camera) {
+            controlsRef.current[0].target.copy(state.getCamera.controls.target);
+            cameraRef.current.lookAt(state.getCamera.controls.target);
+            cameraRef.current.position.copy(state.getCamera.camera.position)
+        }
+
+    }, [ state.getCamera])
+
+    useEffect(() => {
         if (!state.getCurrentObject.object) return;
         if ( state.getToolbox.active && (controlsRef.current[1].object === undefined ||
             controlsRef.current[1].object !== state.getCurrentObject.object ) ) {
@@ -97,7 +101,10 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         } else {
             controlsRef.current[1].detach( state.getCurrentObject.object );
         }
-        outlinePass.current.selectedObjects = [state.getCurrentObject.object]
+        if (outlinePass.current) {
+            outlinePass.current.selectedObjects = [state.getCurrentObject.object]
+        }
+
     }, [state.getCurrentObject.object, state.getToolbox.active])
 
     useEffect(() => {
@@ -105,7 +112,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         state.getCurrentObject.object.position.x = state.getCoords.x;
         state.getCurrentObject.object.position.y = state.getCoords.y;
         state.getCurrentObject.object.position.z = state.getCoords.z;
-
     }, [state.getCoords])
 
     useEffect(() => {
@@ -113,7 +119,7 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         const { EffectComposer } = require('three/examples/jsm/postprocessing/EffectComposer');
         const { RenderPass } = require('three/examples/jsm/postprocessing/RenderPass');
         const { ShaderPass } = require('three/examples/jsm/postprocessing/ShaderPass');
-        const {outline}  = require('../OutlinePatch');
+        const { outline } = require('../OutlinePatch');
         const { FXAAShader } = require('three/examples/jsm/shaders/FXAAShader');
         composerRef.current = new EffectComposer(rendererRef.current);
 
