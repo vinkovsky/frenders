@@ -3,7 +3,7 @@ version: "3.7"
 services:
   frontend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: frontend/Dockerfile.client
       context: ./frontend
     ports:
       - '3000:3000'
@@ -15,7 +15,7 @@ services:
       - backend
   backend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile.client.strapi
       context: ./backend
     ports:
       - '1337:1337'
