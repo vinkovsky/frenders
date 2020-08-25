@@ -23,7 +23,7 @@ import { useStyles } from "../../auth/Profile/Profile.style";
 import * as THREE from "three";
 import EffectComposer from "./EffectComposer";
 
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
 
 const ModelsQuery = gql`
     query ModelUvw($id: ID!) {
@@ -206,7 +206,7 @@ const Uvw = () => {
 
         const response = await axios({
             method: 'POST',
-            url: `http://localhost:1337/upload`,
+            url: `${API_URL}/upload`,
             data: formData
         })
 
