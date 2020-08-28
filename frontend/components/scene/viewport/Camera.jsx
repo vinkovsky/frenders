@@ -2,7 +2,8 @@ import { PerspectiveCamera } from "three";
 
 const Camera = () => {
     const camera = new PerspectiveCamera()
-    camera.position.set(150, 150, 300);
+    camera.far = 10000;
+    camera.position.set(500, 350, 500);
     return camera;
 }
 

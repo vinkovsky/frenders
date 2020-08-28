@@ -51,7 +51,8 @@ const ViewportScene = () => {
         getRenderer: {
             toneMappingValue: 4,
             exposureValue: 1.5,
-            envMap: "https://res.cloudinary.com/frenders/raw/upload/v1595923417/shanghai_bund_2k_8d026479c4",
+            // envMap: "https://res.cloudinary.com/frenders/raw/upload/v1595923417/shanghai_bund_2k_8d026479c4",
+            envMap: "none",
             // background: true
         },
         getColor: '#000000',

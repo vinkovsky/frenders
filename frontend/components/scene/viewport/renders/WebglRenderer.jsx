@@ -192,6 +192,7 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
         if (!state.getRenderer.envMap) return;
 
         const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
+
         (async function () {
             const env = await Loader([RGBELoader], state.getRenderer.envMap);
             let pmremGenerator = new PMREMGenerator(rendererRef.current);
@@ -200,14 +201,11 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
             let hdr = pmremGenerator.fromEquirectangular(env).texture;
             hdrRef.current = hdr;
             sceneRef.current.environment = hdr;
-         //   if (!sceneRef.current.background) {
-                sceneRef.current.background = hdr;
-          //  }
+            sceneRef.current.background = hdr;
 
             env.dispose()
             pmremGenerator.dispose()
         })()
-
     }, [state.getRenderer.envMap])
 
 

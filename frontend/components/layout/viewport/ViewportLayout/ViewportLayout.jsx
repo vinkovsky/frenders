@@ -1,6 +1,5 @@
 import React from 'react'
 import HeaderViewport from "../HeaderViewport/HeaderViewport";
-import FooterViewport from "../FooterViewport/FooterViewport";
 
 import classes from './ViewportLayout.module.sass'
 
@@ -11,7 +10,6 @@ const ViewportLayout = ({ children, authToken }) => {
             <main className={ classes.main }>
                 { children }
             </main>
-            {/*<FooterViewport />*/}
         </div>
     )
 }

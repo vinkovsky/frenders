@@ -3,57 +3,79 @@ import { fabric } from 'fabric';
 
 import {Raycaster, Vector2} from "three";
 import {useRouter} from "next/router";
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import Button from "@material-ui/core/Button";
+import {Save, CloudUpload} from '@material-ui/icons';
+import { Button } from "@material-ui/core";
 import gql from "graphql-tag";
 import axios from 'axios';
-import {useQuery} from "@apollo/react-hooks";
-
+import {useMutation, useQuery} from "@apollo/react-hooks";
 
 import useFabric from "./useFabric";
 
-import styles from '../ViewportScene/ViewportScene.module.sass'
+import styles from './Uvw.module.sass'
 import TextureTabs from './TextureTabs'
 import ViewportSceneContext from "../../../context/ViewportSceneContext";
-
-import CircularProgress from "@material-ui/core/CircularProgress";
-
-
-import { useStyles } from "../../auth/Profile/Profile.style";
-import * as THREE from "three";
-import EffectComposer from "./EffectComposer";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
 
 const ModelsQuery = gql`
     query ModelUvw($id: ID!) {
         model(id: $id) {
-            uvw {
-                url
+            map
+            roughnessMap
+            metalnessMap
+            normalMap
+        }
+    }
+`;
+
+const ModelsMutationQuery = gql`
+    mutation updateModelJSON(
+        $id: ID!
+        
+        $roughnessMap: JSON!
+        $metalnessMap: JSON!
+        $normalMap: JSON!
+        $map: JSON!
+    ){
+        updateModel(
+            input: { 
+                where: { id: $id }
+                data: { 
+                   
+                    roughnessMap: $roughnessMap
+                    metalnessMap: $metalnessMap
+                    normalMap: $normalMap
+                    map: $map
+                }
+            }
+        ) {
+            model {
+               
+                roughnessMap
+                metalnessMap
+                normalMap
+                map
             }
         }
     }
 `;
 
-
-
 let collection = new Map([
     ['map', true],
-    ['metalnessMap', false],
     ['roughnessMap', false],
-    //  ['normalMap', false]
+    ['metalnessMap', false],
+    ['normalMap', false]
 ]);
 let activeMap = 'map';
 let dataMap = {
     map: [],
-    metalnessMap: [],
     roughnessMap: [],
-    //   normalMap: []
+    metalnessMap: [],
+    normalMap: []
 }
 
 const Uvw = () => {
     const router = useRouter();
-
     const [state, dispatch] = useContext(ViewportSceneContext);
     const itemsRef = useRef([]);
     const canvasRef = useRef();
@@ -61,6 +83,8 @@ const Uvw = () => {
     const width = 512, height = 512;
     const [value, setValue] = useState(0);
     const [activeObject, setActiveObject] = useState(null);
+    const activeCanvasRef = useRef();
+    const activeContextCanvasRef = useRef();
 
     const TEXTURES_DATA = [
         {
@@ -68,17 +92,17 @@ const Uvw = () => {
             id: '1',
         },
         {
-            name: 'metalnessMap',
+            name: 'roughnessMap',
             id: '2',
         },
         {
-            name: 'roughnessMap',
+            name: 'metalnessMap',
             id: '3',
         },
-        // {
-        //     name: 'normalMap',
-        //     id: '4',
-        // }
+        {
+            name: 'normalMap',
+            id: '4',
+        }
     ];
     const { data, loading, error, refetch } = useQuery(ModelsQuery, {
         variables: {
@@ -86,7 +110,10 @@ const Uvw = () => {
         }
 
     });
-    const classes = useStyles();
+
+    const [updateModelJSON] = useMutation(ModelsMutationQuery);
+
+    if (data === undefined) refetch();
 
     useEffect(() => {
         if (data === undefined) return;
@@ -99,20 +126,18 @@ const Uvw = () => {
                 maps: itemsRef.current
             }
         });
-       // canvas.on('after:render', canvas._afterRender());
+        // canvas.on('after:render', canvas._afterRender());
 
     }, [data])
 
-    useEffect(() => {
-       // switchMap(itemsRef.current[value].id);
-    }, [value])
-
     let switchMap = (map) => {
-       // if (activeMap === map) return;
+        // if (activeMap === map) return;
 
         collection.forEach((value, key, arr) => {
             if (key !== map && value) {
-                 dataMap[key] = [];
+                dataMap[key] = [];
+              //  dataMap[key].push(JSON.stringify(canvasRef.current.toDatalessJSON()));
+
                 canvasRef.current.forEachObject((obj) => {
                     dataMap[key].push(obj)
                 })
@@ -126,21 +151,74 @@ const Uvw = () => {
             canvasRef.current.backgroundColor = "#FFFFFF";
         }
         if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
-        canvasRef.current.updateCacheMap(itemsRef.current[value]);
-      //  canvasRef.current.on('after:render', canvasRef.current._afterRender());
-        dataMap[map].forEach((o) => {
-            canvasRef.current.add(o);
-        });
-        canvasRef.current.renderAll();
-        activeMap = map;
-        collection.set(map, true);
+       // canvasRef.current.updateCacheMap(itemsRef.current[value]);
+        //  canvasRef.current.on('after:render', canvasRef.current._afterRender());
+          //  console.log(canvasRef.current)
+        // console.log(dataMap[map]);
+        //     canvasRef.current.loadFromDatalessJSON(dataMap[map], (o, object) => {
+        //         console.log(o, object);
+        //     })
+            dataMap[map].forEach((o) => {
+                canvasRef.current.add(o);
+            });
+            canvasRef.current.renderAll();
+            activeMap = map;
+            collection.set(map, true);
+
+            console.log(dataMap[map])
 
     }
 
-    if (data === undefined) refetch();
+
+    useEffect(() => {
+        if (!data) return;
+
+        Object.entries(data.model).reverse().map((item) => {
+            if (item[0] == '__typename') return;
+
+
+
+
+
+            item[1].forEach((o) => {
+              //  if (o.length == 0) return
+
+                if (o.type == 'path') {
+                    new fabric.Path.fromObject(o, function(foo) {
+                            dataMap[item[0]].push(foo)
+                            canvasRef.current.add(foo);
+                        }
+                    );
+
+                }
+
+            });
+
+
+
+
+            const sourceCtx = canvasRef.current.getContext('2d');
+            const canvas = itemsRef.current.find((canvas) => canvas.id == item[0]);
+
+            console.log(data.model)
+            const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
+            canvas.getContext('2d').putImageData(myImageData, 0, 0);
+            console.log(item[0])
+            if (item[0] != 'map') canvasRef.current.remove(...canvasRef.current.getObjects().concat());
+
+        })
+
+    }, [data])
 
     const ref = useFabric((canvas) => {
         canvasRef.current = canvas;
+        canvas.on({"after:render": function(e) {
+            const sourceCtx = canvas.getContext('2d');
+            activeContextCanvasRef.current = activeCanvasRef.current.getContext('2d');
+            const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
+            activeContextCanvasRef.current.putImageData(myImageData, 0, 0);
+        }});
+        canvas.isDrawingMode = true;
         canvas.width = width;
         canvas.height = height;
         canvas.setWidth(512)
@@ -148,88 +226,102 @@ const Uvw = () => {
         canvas.backgroundColor = '#a32342'
     });
 
-    useLayoutEffect(() => {
-        if (data === undefined || data.model.uvw.length === 0) return;
-        let offset = 10;
-        data.model.uvw.map((item) => {
 
-            fabric.Image.fromURL(item.url, (img) => {
-                img.set({
-                    top: 150 + offset,
-                    left: 250 + offset
-                })
-                offset += 10;
+    const saveCanvasHandler = async () => {
+        await updateModelJSON({
+            variables: {
+                id: router.query.id,
 
-                img.scaleToWidth(canvasRef.current.width);
-                canvasRef.current.add(img);
-
-                img.setCoords();
-
-                // canvasRef.current.requestRenderAll()
-            }, {
-                crossOrigin: 'Anonymous'
-            });
+                roughnessMap: dataMap.roughnessMap,
+                metalnessMap: dataMap.metalnessMap,
+                normalMap: dataMap.normalMap,
+                map: dataMap.map,
+            }
         })
-
-
-
-    }, [data])
-
-    function resize() {
-        // const width = containerRef.current.offsetWidth;
-        // const height = containerRef.current.offsetHeight;
-        // // if (width === 0) {
-        // //     canvasRef.current.setWidth(512)
-        // //     canvasRef.current.setHeight(512)
-        // // }
-        // if(width > height) {
-        //     canvasRef.current.setWidth(height)
-        //     canvasRef.current.setHeight(height)
-        // } else {
-        //     canvasRef.current.setWidth(width)
-        //     canvasRef.current.setHeight(width)
-        // }
-
-
-
-        // canvasRef.current.calcOffset()
-
+        console.log(data.model)
     }
 
-    const onImageLoad = async (e) => {
 
+    useLayoutEffect(() => {
+        if (data === undefined) return;
+        let offset = 10;
+
+        // Object.entries(data.model).map((el, index) => {
+        //    console.log(el[0], el[1], index);
+        //
+        //     if(el[0] !== '__typename') {
+        //         data.model[el[0]].map((item) => {
+        //             fabric.Image.fromURL(item.url, (img) => {
+        //                 img.set({
+        //                     top: 150 + offset,
+        //                     left: 250 + offset
+        //                 })
+        //                 offset += 10;
+        //
+        //                 img.scaleToWidth(canvasRef.current.width);
+        //                 canvasRef.current.add(img);
+        //                 img.setCoords();
+        //
+        //                 canvasRef.current.requestRenderAll()
+        //                 // activeCanvasRef.current.requestRenderAll()
+        //             }, {
+        //                 crossOrigin: 'Anonymous'
+        //             });
+        //         })
+        //     }
+        // })
+    }, [data])
+
+    const onImageLoad = async (e) => {
         const formData = new FormData()
-        formData.append('files', e.target.files[0])
+        formData.append('files', e.target.files[0] )
+
         formData.append('ref', 'model')
         formData.append('refId', router.query.id)
-        formData.append('field', 'uvw')
+        formData.append('field', itemsRef.current[value].id)
+
 
         const response = await axios({
             method: 'POST',
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            },
             url: `${API_URL}/upload`,
             data: formData
         })
 
-        fabric.Image.fromURL(response.data[0].url, (img) => {
-            img.set({
-                originX: 'center',
-                originY: 'center',
-            })
-            img.scaleToWidth(canvasRef.current.width);
-            canvasRef.current.add(img);
-            img.center();
 
-            img.setCoords();
+        // fabric.Image.fromURL(response.data[0].url, (img) => {
+        //     img.set({
+        //         originX: 'center',
+        //         originY: 'center',
+        //     })
+        //     img.scaleToWidth(canvasRef.current.width);
+        //     canvasRef.current.add(img);
+        //     img.center();
+        //
+        //     img.setCoords();
+        //
+        //     canvasRef.current.requestRenderAll()
+        // }, {
+        //     crossOrigin: 'Anonymous'
+        // });
 
-            canvasRef.current.requestRenderAll()
-        }, {
-            crossOrigin: 'Anonymous'
-        });
+
     }
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
+
     };
+
+
+
+    useEffect(() => {
+        activeCanvasRef.current = itemsRef.current[value];
+        switchMap(itemsRef.current[value].id)
+    }, [value])
 
     useEffect(() => {
         if (!state.getCurrentObject || state.getData.model === null) return;
@@ -254,7 +346,6 @@ const Uvw = () => {
         })
 
     }, [activeObject])
-
 
     useEffect(() => {
         const { container, scene, camera } = state.getData;
@@ -286,7 +377,6 @@ const Uvw = () => {
             if (intersects.length > 0 && intersects[0].uv) {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
-
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
                 return {
@@ -311,7 +401,6 @@ const Uvw = () => {
             raycaster.setFromCamera(mouse, state.getData.camera);
             return raycaster.intersectObjects(objects, true);
         }
-
 
         fabric.Canvas.prototype.getPointer = function(e, ignoreZoom) {
             if (this._absolutePointer && !ignoreZoom) {
@@ -436,12 +525,12 @@ const Uvw = () => {
         }
     };
 
-
     return (
-        <div className={styles.uvw}>
-            <Button variant="contained" component="label" style={{ position: 'absolute', top: 0, right: 0, zIndex: 100, width: '47px', height: '47px', borderRadius: 0 }}
+        <div>
+            <Button variant="contained" component="label"
+                    style={{ position: 'absolute', top: 0, right: 0, zIndex: 100, width: '47px', height: '47px', borderRadius: 0 }}
                     color="primary">
-                <CloudUploadIcon />
+                <CloudUpload />
                 <input
                     type="file"
                     name="files"
@@ -450,9 +539,13 @@ const Uvw = () => {
                     onChange={onImageLoad}
                 />
             </Button>
-
-            <div ref={containerRef} style={{ width: 'calc(100% - 326px)', height: 'calc(100vh - 326px)', display: 'flex', justifyContent: 'center' }}>
-                <canvas ref={ref} />
+            <Button variant="contained" component="label" onClick={saveCanvasHandler}
+                    style={{ position: 'absolute', top: 0, right: 65, zIndex: 100, width: '47px', height: '47px', borderRadius: 0 }}
+                    color="primary">
+                <Save />
+            </Button>
+            <div ref={containerRef} style={{ padding: '30px', display: 'flex', justifyContent: 'center' }}>
+                <canvas ref={ref} id="canvas" />
             </div>
 
             <TextureTabs handleChange={handleChange} value={value}/>
@@ -460,7 +553,7 @@ const Uvw = () => {
             <div>
                 {
                     TEXTURES_DATA.map((item, i) => {
-                        return <canvas key={i} id={item.name} style={{ display: 'none' }}
+                        return <canvas key={i} id={item.name} className={ i === value ? styles.block: styles.none }
                                        width={width} height={height} ref={el => itemsRef.current[i] = el} />
                     })
                 }
@@ -470,3 +563,4 @@ const Uvw = () => {
 }
 
 export default React.memo(Uvw);
+

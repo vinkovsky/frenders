@@ -110,6 +110,7 @@ export default function ChooseObject() {
                          //     models.current.push(child);
                          // });
                          setSelected('1');
+
                          dispatch({
                              type: 'getCurrentObject',
                              payload: {

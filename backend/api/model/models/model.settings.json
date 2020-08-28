@@ -32,14 +32,17 @@
       "plugin": "upload",
       "required": true
     },
-    "uvw": {
-      "collection": "file",
-      "via": "related",
-      "allowedTypes": [
-        "images"
-      ],
-      "plugin": "upload",
-      "required": false
+    "map": {
+      "type": "json"
+    },
+    "roughnessMap": {
+      "type": "json"
+    },
+    "metalnessMap": {
+      "type": "json"
+    },
+    "normalMap": {
+      "type": "json"
     }
   }
 }

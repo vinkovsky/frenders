@@ -4,14 +4,14 @@ export const useStyles = makeStyles((theme) => ({
     appbar: {
         position: 'initial',
         width: '100%',
-        height: '50px',
         borderBottom: '1px solid #eaeaea'
     },
     toolbar: {
         width: '100%',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        minHeight: '48px',
     },
     logo: {
         fontSize: '1.8rem',

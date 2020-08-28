@@ -13,7 +13,14 @@ const HeaderViewport = ({ authToken }) => {
     return (
         <AppBar position="absolute" className={ classes.appbar }>
             <Toolbar className={ classes.toolbar }>
-
+                <Link href="/">
+                    <a className={ classes.link }>
+                        <Typography variant="h1" className={ classes.logo }>
+                            Frenders
+                        </Typography>
+                    </a>
+                </Link>
+                <Navigation authToken={ authToken } />
             </Toolbar>
         </AppBar>
     )

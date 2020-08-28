@@ -64,20 +64,12 @@ export default function UvwRightPanel({ active }) {
             component: <ChooseLayer />
         },
         {
-            name: `Выбор карты`,
-            component: <ChooseMap />
-        },
-        {
             name: `Фильтры`,
             component: <Filters />
         },
         {
             name: `Настройка инструментов`,
             component: <ToolSettings />
-        },
-        {
-            name: `Настройки холста`,
-            component: null
         }
     ]
 
