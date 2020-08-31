@@ -108,10 +108,11 @@ const Uvw = () => {
         variables: {
             id: router.query.id
         }
-
     });
 
-    const [updateModelJSON] = useMutation(ModelsMutationQuery);
+    const [updateModelJSON, {loading: mutationLoading}] = useMutation(ModelsMutationQuery, {
+        errorPolicy: "all"
+    });
 
     if (data === undefined) refetch();
 
@@ -130,44 +131,44 @@ const Uvw = () => {
 
     }, [data])
 
-    let switchMap = (map) => {
-        // if (activeMap === map) return;
-
-        collection.forEach((value, key, arr) => {
-            if (key !== map && value) {
-                dataMap[key] = [];
-              //  dataMap[key].push(JSON.stringify(canvasRef.current.toDatalessJSON()));
-
-                canvasRef.current.forEachObject((obj) => {
-                    dataMap[key].push(obj)
-                })
-
-                arr.set(key, false);
-            }
-        });
-        if (map === 'normalMap') {
-            canvasRef.current.backgroundColor = "#8080FF";
-        } else {
-            canvasRef.current.backgroundColor = "#FFFFFF";
-        }
-        if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
-       // canvasRef.current.updateCacheMap(itemsRef.current[value]);
-        //  canvasRef.current.on('after:render', canvasRef.current._afterRender());
-          //  console.log(canvasRef.current)
-        // console.log(dataMap[map]);
-        //     canvasRef.current.loadFromDatalessJSON(dataMap[map], (o, object) => {
-        //         console.log(o, object);
-        //     })
-            dataMap[map].forEach((o) => {
-                canvasRef.current.add(o);
-            });
-            canvasRef.current.renderAll();
-            activeMap = map;
-            collection.set(map, true);
-
-            console.log(dataMap[map])
-
-    }
+    // let switchMap = (map) => {
+    //     // if (activeMap === map) return;
+    //
+    //     collection.forEach((value, key, arr) => {
+    //         if (key !== map && value) {
+    //             dataMap[key] = [];
+    //              dataMap[key].push(JSON.stringify(canvasRef.current.toDatalessJSON()));
+    //
+    //             // canvasRef.current.forEachObject((obj) => {
+    //             //     dataMap[key].push(obj)
+    //             // })
+    //
+    //             arr.set(key, false);
+    //         }
+    //     });
+    //     if (map === 'normalMap') {
+    //         canvasRef.current.backgroundColor = "#8080FF";
+    //     } else {
+    //         canvasRef.current.backgroundColor = "#FFFFFF";
+    //     }
+    //     if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
+    //    // canvasRef.current.updateCacheMap(itemsRef.current[value]);
+    //     //  canvasRef.current.on('after:render', canvasRef.current._afterRender());
+    //       //  console.log(canvasRef.current)
+    //     // console.log(dataMap[map]);
+    //         canvasRef.current.loadFromDatalessJSON(dataMap[map], (o, object) => {
+    //             console.log(o, object);
+    //         })
+    //     //     dataMap[map].forEach((o) => {
+    //     //         canvasRef.current.add(o);
+    //     //     });
+    //         canvasRef.current.renderAll();
+    //         activeMap = map;
+    //         collection.set(map, true);
+    //
+    //         console.log(dataMap[map])
+    //
+    // }
 
 
     useEffect(() => {
@@ -175,37 +176,43 @@ const Uvw = () => {
 
         Object.entries(data.model).reverse().map((item) => {
             if (item[0] == '__typename') return;
-
-
-
-
-
-            item[1].forEach((o) => {
-              //  if (o.length == 0) return
-
-                if (o.type == 'path') {
-                    new fabric.Path.fromObject(o, function(foo) {
-                            dataMap[item[0]].push(foo)
-                            canvasRef.current.add(foo);
-                        }
-                    );
-
-                }
-
+            console.log(item[1])
+            canvasRef.current.loadFromDatalessJSON(item[1][0], canvasRef.current.renderAll.bind(canvasRef.current), (o, obj) => {
+                console.log(o, obj)
             });
+            canvasRef.current.renderAll();
+            // item[1].forEach((o) => {
+            //
+            //     switch(o.type) {
+            //         case 'path':
+            //             new fabric.Path.fromObject(o, (pth) => {
+            //                     dataMap[item[0]].push(pth)
+            //                     canvasRef.current.add(pth);
+            //                 }
+            //             )
+            //             break;
+            //         case 'image':
+            //             new fabric.Image.fromObject(o, (img) => {
+            //                     dataMap[item[0]].push(img)
+            //                     canvasRef.current.add(img);
+            //                 }
+            //             )
+            //             break;
+            //     }
+            //
+            // });
 
-
-
-
+            canvasRef.current.requestRenderAll();
             const sourceCtx = canvasRef.current.getContext('2d');
             const canvas = itemsRef.current.find((canvas) => canvas.id == item[0]);
 
-            console.log(data.model)
             const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
             canvas.getContext('2d').putImageData(myImageData, 0, 0);
-            console.log(item[0])
-            if (item[0] != 'map') canvasRef.current.remove(...canvasRef.current.getObjects().concat());
 
+            //if (item[0] !== 'normalMap') {
+               // canvasRef.current.remove(...canvasRef.current.getObjects().concat());
+               // canvasRef.current.requestRenderAll();
+           // }
         })
 
     }, [data])
@@ -218,7 +225,8 @@ const Uvw = () => {
             const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
             activeContextCanvasRef.current.putImageData(myImageData, 0, 0);
         }});
-        canvas.isDrawingMode = true;
+
+         canvas.isDrawingMode = true;
         canvas.width = width;
         canvas.height = height;
         canvas.setWidth(512)
@@ -237,48 +245,18 @@ const Uvw = () => {
                 normalMap: dataMap.normalMap,
                 map: dataMap.map,
             }
+
         })
-        console.log(data.model)
+        console.log(mutationLoading)
     }
-
-
-    useLayoutEffect(() => {
-        if (data === undefined) return;
-        let offset = 10;
-
-        // Object.entries(data.model).map((el, index) => {
-        //    console.log(el[0], el[1], index);
-        //
-        //     if(el[0] !== '__typename') {
-        //         data.model[el[0]].map((item) => {
-        //             fabric.Image.fromURL(item.url, (img) => {
-        //                 img.set({
-        //                     top: 150 + offset,
-        //                     left: 250 + offset
-        //                 })
-        //                 offset += 10;
-        //
-        //                 img.scaleToWidth(canvasRef.current.width);
-        //                 canvasRef.current.add(img);
-        //                 img.setCoords();
-        //
-        //                 canvasRef.current.requestRenderAll()
-        //                 // activeCanvasRef.current.requestRenderAll()
-        //             }, {
-        //                 crossOrigin: 'Anonymous'
-        //             });
-        //         })
-        //     }
-        // })
-    }, [data])
 
     const onImageLoad = async (e) => {
         const formData = new FormData()
         formData.append('files', e.target.files[0] )
 
-        formData.append('ref', 'model')
-        formData.append('refId', router.query.id)
-        formData.append('field', itemsRef.current[value].id)
+        // formData.append('ref', 'model')
+        // formData.append('refId', router.query.id)
+        // formData.append('field', itemsRef.current[value].id)
 
 
         const response = await axios({
@@ -292,36 +270,81 @@ const Uvw = () => {
         })
 
 
-        // fabric.Image.fromURL(response.data[0].url, (img) => {
-        //     img.set({
-        //         originX: 'center',
-        //         originY: 'center',
-        //     })
-        //     img.scaleToWidth(canvasRef.current.width);
-        //     canvasRef.current.add(img);
-        //     img.center();
-        //
-        //     img.setCoords();
-        //
-        //     canvasRef.current.requestRenderAll()
-        // }, {
-        //     crossOrigin: 'Anonymous'
-        // });
+        fabric.Image.fromURL(response.data[0].url, (img) => {
+            img.set({
+                originX: 'center',
+                originY: 'center',
+            })
+            img.scaleToWidth(canvasRef.current.width);
 
+            canvasRef.current.add(img);
+            img.center();
 
+            img.setCoords();
+            updateStateMap(itemsRef.current[value].id)
+            canvasRef.current.renderAll()
+
+        }, {
+            crossOrigin: 'Anonymous'
+        });
+        console.log('loaded')
     }
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
-
     };
 
+    const updateStateMap = (map) => {
+        // if (activeMap === map) return;
 
+        dataMap[map] = [];
+        dataMap[map].push(JSON.stringify(canvasRef.current.toDatalessJSON()));
+        // canvasRef.current.forEachObject((obj) => {
+        //     dataMap[map].push(obj)
+        // })
+    }
+
+    const switchMap = (map) => {
+        if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
+        if (dataMap[map][0]) {
+            canvasRef.current.loadFromDatalessJSON(dataMap[map][0], canvasRef.current.renderAll.bind(canvasRef.current), (o, obj) => {
+                console.log(o, obj)
+            });
+        }
+
+        // if (map === 'normalMap') {
+        //     canvasRef.current.backgroundColor = "#8080FF";
+        // } else {
+        //     canvasRef.current.backgroundColor = "#FFFFFF";
+        // }
+        // canvasRef.current.renderAll();
+
+        //
+        // dataMap[map].forEach((o) => {
+        //     console.log(o)
+        //     canvasRef.current.add(o);
+        // });
+        console.log(dataMap[map][0])
+
+
+       // activeMap = map;
+    }
 
     useEffect(() => {
         activeCanvasRef.current = itemsRef.current[value];
         switchMap(itemsRef.current[value].id)
+
     }, [value])
+
+    useEffect(() => {
+        const handleChange = () => {
+            updateStateMap(itemsRef.current[value].id)
+        }
+        canvasRef.current.on('mouse:up', handleChange)
+        return () => {
+            canvasRef.current.off('mouse:up', handleChange)
+        }
+    }, [itemsRef.current[value]])
 
     useEffect(() => {
         if (!state.getCurrentObject || state.getData.model === null) return;
