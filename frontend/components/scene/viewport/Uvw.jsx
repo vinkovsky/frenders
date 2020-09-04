@@ -60,12 +60,6 @@ const ModelsMutationQuery = gql`
     }
 `;
 
-let collection = new Map([
-    ['map', true],
-    ['roughnessMap', false],
-    ['metalnessMap', false],
-    ['normalMap', false]
-]);
 let activeMap = 'map';
 let dataMap = {
     map: [],
@@ -147,24 +141,17 @@ const Uvw = () => {
             if (item[0] == '__typename') return;
 
             dataMap[item[0]].push(item[1][0])
-            if (item[0] == 'map') {
+            if (item[0] == activeMap) {
                 canvasRef.current.loadFromJSON(item[1][0]);
                 canvasRef.current.renderAll()
             }
 
-
-          //  canvasRef.current.remove(...canvasRef.current.getObjects().concat());
-         //   updateStateMap(item[0])
             const sourceCtx = canvasRef.current.getContext('2d');
             const canvas = itemsRef.current.find((canvas) => canvas.id == item[0]);
 
             const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
             canvas.getContext('2d').putImageData(myImageData, 0, 0);
 
-            //if (item[0] !== 'normalMap') {
-            // canvasRef.current.remove(...canvasRef.current.getObjects().concat());
-            // canvasRef.current.requestRenderAll();
-            // }
         })
 
     }, [data])
@@ -172,18 +159,18 @@ const Uvw = () => {
     const ref = useFabric((canvas) => {
         canvasRef.current = canvas;
         canvas.on({"after:render": function(e) {
-                const sourceCtx = canvas.getContext('2d');
-                activeContextCanvasRef.current = activeCanvasRef.current.getContext('2d');
-                const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
-                activeContextCanvasRef.current.putImageData(myImageData, 0, 0);
-            }});
+            const sourceCtx = canvas.getContext('2d');
+            activeContextCanvasRef.current = activeCanvasRef.current.getContext('2d');
+            const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
+            activeContextCanvasRef.current.putImageData(myImageData, 0, 0);
+        }});
 
-         canvas.isDrawingMode = true;
+        canvas.isDrawingMode = true;
         canvas.width = width;
         canvas.height = height;
         canvas.setWidth(512)
         canvas.setHeight(512)
-   //     canvas.backgroundColor = '#a32342'
+
     });
 
 
