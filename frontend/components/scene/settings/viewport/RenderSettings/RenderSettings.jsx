@@ -28,7 +28,7 @@ function RenderSettings({ envMaps }) {
         disabled: true,
         pointer: "none"
     });
-    const [envMap, setEnvMap] = useState("https://res.cloudinary.com/frenders/raw/upload/v1595923417/shanghai_bund_2k_8d026479c4");
+    const [envMap, setEnvMap] = useState("https://res.cloudinary.com/frenders/raw/upload/v1598926961/shanghai_bund_2k_0ecb264c7c");
     const [viewPanelBackground, setViewPanelBackground] = useState(false);
     const [color, setColor] = useState('#000000');
 

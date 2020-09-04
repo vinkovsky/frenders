@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 const ModelNameQuery = gql`
-    query ModelQuery($id: ID!){
+    query($id: ID!){
         model(id: $id) {
             name
         }

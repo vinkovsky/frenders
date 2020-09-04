@@ -29,11 +29,13 @@ export default function ChooseObject() {
     // const [checked, setChecked] = useState(null);
     const models = useRef([]);
 
+
     const { data, loading, error, refetch } = useQuery(ModelNameQuery, {
         variables: {
             id: router.query.id
         }
     });
+
 
     let treeViewItems = [];
     if (state.getObjects.objects !== undefined) {

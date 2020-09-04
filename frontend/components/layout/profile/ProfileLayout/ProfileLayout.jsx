@@ -1,5 +1,4 @@
 import React, { Children, useState } from 'react';
-import PropTypes from 'prop-types';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { useTheme } from '@material-ui/core/styles';
 
@@ -34,10 +33,6 @@ function ProfileLayout({ children, authToken }) {
         </div>
     );
 }
-
-ProfileLayout.propTypes = {
-    window: PropTypes.func,
-};
 
 export default ProfileLayout;
 

@@ -11,8 +11,8 @@
   "attributes": {
     "name": {
       "type": "string",
-      "unique": true,
-      "required": true
+      "unique": false,
+      "required": false
     },
     "model": {
       "model": "file",
@@ -21,7 +21,7 @@
         "files"
       ],
       "plugin": "upload",
-      "required": true
+      "required": false
     },
     "img": {
       "model": "file",
@@ -30,7 +30,7 @@
         "images"
       ],
       "plugin": "upload",
-      "required": true
+      "required": false
     },
     "map": {
       "type": "json"
@@ -43,6 +43,11 @@
     },
     "normalMap": {
       "type": "json"
+    },
+    "user": {
+      "plugin": "users-permissions",
+      "model": "user",
+      "via": "models"
     }
   }
 }

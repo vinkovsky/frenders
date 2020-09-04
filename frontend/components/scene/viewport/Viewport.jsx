@@ -7,15 +7,38 @@ import ViewportSceneContext from "../../../context/ViewportSceneContext";
 import ModelIdQuery from "../../../graphql/queries/dashboard/modelId";
 
 import PhotoCameraIcon from '@material-ui/icons/PhotoCamera';
-import {useQuery} from "@apollo/react-hooks";
+import {useMutation, useQuery} from "@apollo/react-hooks";
 import {CircularProgress} from "@material-ui/core";
 import classes from "../ViewportScene/ViewportScene.module.sass";
 import {useRouter} from "next/router";
+import AppContext from "../../../context/AppContext";
+import gql from "graphql-tag";
+import ScenesItem from "../../dashboard/Scenes/ScenesItem/ScenesItem";
 
 //import { ContextApp } from "../ViewportScene/ViewportScene";
 
-const Viewport = React.memo(({ envMaps }) => {
+// const SAVE_MODEL = gql`
+//     mutation saveModelJSON(
+//         $id: ID!
+//         $saveModel: JSON!
+//     ){
+//         updateUser(
+//             input: {
+//                 where: { id: $id }
+//                 data: {
+//                     saveModel: $saveModel
+//                 }
+//             }
+//         ) {
+//             user {
+//                 saveModel
+//             }
+//         }
+//     }
+// `;
 
+const Viewport = React.memo(({ envMaps }) => {
+    const appContext = useContext(AppContext);
     const [assets, setAssets] = useState(null);
     const [active, setActive] = useState(true);
     const [state, dispatch] = useContext(ViewportSceneContext);
@@ -28,6 +51,25 @@ const Viewport = React.memo(({ envMaps }) => {
         }
     });
 
+    // const [ saveModelJSON ] = useMutation(SAVE_MODEL)
+
+    useEffect(() => {
+        if (data === undefined || appContext.user === null) return;
+
+        // console.log(data.model)
+        //
+        // const { name, img, model, __typename, ...rest  } = data.model;
+        //
+        // console.log(rest)
+        //
+        // saveModelJSON({
+        //     variables: {
+        //         id: appContext.user.id,
+        //         saveModel: rest
+        //     }
+        // })
+    }, [data])
+
     useEffect(() => {
         if (!state.getCanvas || data === undefined || !state.getRenderer.envMap) return;
 
@@ -39,9 +81,9 @@ const Viewport = React.memo(({ envMaps }) => {
 
             const gltf = await Loader([GLTFLoader, DRACOLoader], data.model.model.url);
             const env = await Loader([RGBELoader], state.getRenderer.envMap);
-        
+
             env.dispose();
-            
+
             let objects = [];
             gltf.scene.traverse((child) => {
                 if(!child.isMesh ) return;
@@ -75,7 +117,7 @@ const Viewport = React.memo(({ envMaps }) => {
                     color="primary" onClick={changeRenderer}>
                 <PhotoCameraIcon />
             </Button>
-        
+
             <Renderer assets={assets} type={active} />
         </>
 

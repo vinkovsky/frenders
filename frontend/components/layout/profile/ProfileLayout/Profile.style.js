@@ -49,7 +49,9 @@ export const useStyles = makeStyles((theme) => ({
     section: {
         display: 'flex',
         height: 'calc(100vh - 64px)',
-        overflow: 'auto'
+        overflow: 'auto',
+        flexWrap: 'wrap',
+        alignContent: 'flex-start',
     },
     title: {
         fontSize: '1.8rem',

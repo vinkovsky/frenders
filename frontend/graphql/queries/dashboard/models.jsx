@@ -2,13 +2,15 @@ import gql from "graphql-tag";
 
 const ModelsQuery = gql`
     query {
-        models {
+        assets {
             id
             name
             img {
+                id
                 url
             }
             model {
+                id
                 url
             }
         }
