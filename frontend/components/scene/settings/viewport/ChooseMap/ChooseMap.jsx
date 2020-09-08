@@ -64,7 +64,7 @@ export default function ChooseMap() {
         },
         'metalness': {
             on: true,
-            intensity: 100
+            intensity: 0
         },
         // 'normalMap': {
         //     on: true,
@@ -83,7 +83,6 @@ export default function ChooseMap() {
                 intensity: dataMap[event.target.name].intensity
             }
         });
-        console.log(dataMap);
         console.log(state.getCurrentObject.object);
     };
 
@@ -161,7 +160,7 @@ export default function ChooseMap() {
                     <TextField
                         type="number"
                         id="outlined-size-normal"
-                        defaultValue="100"
+                        defaultValue="0"
                         inputProps={{ min: "0", max: "100", step: "1" }}
                         className={ classes.textField }
                         margin="normal"

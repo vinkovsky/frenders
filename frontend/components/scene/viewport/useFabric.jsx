@@ -7,7 +7,7 @@ const useFabric = (onChange) => {
     return useCallback((node) => {
         if (node) {
             fabricRef.current = new fabric.Canvas(node, {
-                renderOnAddRemove: false
+                //renderOnAddRemove: false
             });
             if (onChange) {
                 disposeRef.current = onChange(fabricRef.current);

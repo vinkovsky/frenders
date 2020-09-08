@@ -6,8 +6,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337"
 
 const config = {
     link: new HttpLink({
-        // uri: `${ API_URL }/graphql`,
-        uri: `http://192.168.0.15:1337/graphql`,
+        uri: `${ API_URL }/graphql`,
+        //uri: `http://192.168.0.15:1337/graphql`,
         credentials: 'same-origin'
     }),
     cache: new InMemoryCache({}),

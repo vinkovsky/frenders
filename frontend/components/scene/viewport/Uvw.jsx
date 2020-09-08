@@ -160,12 +160,13 @@ const Uvw = () => {
         canvasRef.current = canvas;
         canvas.on({"after:render": function(e) {
             const sourceCtx = canvas.getContext('2d');
-            activeContextCanvasRef.current = activeCanvasRef.current.getContext('2d');
+            const activeContextCanvasRef = activeCanvasRef.current.getContext('2d');
             const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
-            activeContextCanvasRef.current.putImageData(myImageData, 0, 0);
+            activeContextCanvasRef.putImageData(myImageData, 0, 0);
         }});
 
-        canvas.isDrawingMode = true;
+
+            //  canvas.isDrawingMode = true;
         canvas.width = width;
         canvas.height = height;
         canvas.setWidth(512)
@@ -173,20 +174,16 @@ const Uvw = () => {
 
     });
 
-
     const saveCanvasHandler = async () => {
         await updateModelJSON({
             variables: {
                 id: router.query.id,
-
                 roughnessMap: dataMap.roughnessMap,
                 metalnessMap: dataMap.metalnessMap,
                 normalMap: dataMap.normalMap,
                 map: dataMap.map,
             }
-
         })
-        console.log(mutationLoading)
     }
 
     const onImageLoad = async (e) => {
@@ -208,7 +205,6 @@ const Uvw = () => {
             data: formData
         })
 
-
         fabric.Image.fromURL(response.data[0].url, (img) => {
             img.set({
                 originX: 'center',
@@ -226,14 +222,11 @@ const Uvw = () => {
         }, {
             crossOrigin: 'Anonymous'
         });
-        console.log('loaded')
     }
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-
-
 
     const switchMap = (map) => {
         if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
@@ -247,9 +240,7 @@ const Uvw = () => {
             canvasRef.current.backgroundColor = "#FFFFFF";
         }
         canvasRef.current.renderAll();
-
-
-         activeMap = map;
+        activeMap = map;
     }
 
     useEffect(() => {
@@ -298,20 +289,35 @@ const Uvw = () => {
 
         let onClickPosition = new Vector2();
         let currentObject = null;
-
-        const onMouseEvt = (evt) => {
-            evt.preventDefault();
-
-            const positionOnScene = getPositionOnScene(state.getData.container, evt)
-            if (positionOnScene) {
-                const canvasRect = canvasRef.current._offset;
-                const simEvt = new MouseEvent(evt.type, {
-                    clientX: canvasRect.left + positionOnScene.x,
-                    clientY: canvasRect.top + positionOnScene.y
-                });
-                canvasRef.current.upperCanvasEl.dispatchEvent(simEvt);
-                setActiveObject(activeObject => currentObject);
+        state.getData.container.addEventListener('keydown', (e) => {
+            e.preventDefault()
+            if (e.key == 'Alt') {
+                state.getData.controls[0].enabled = false;
             }
+        });
+        state.getData.container.addEventListener('keyup', (e) => {
+            e.preventDefault()
+            if (e.key == 'Alt') {
+                state.getData.controls[0].enabled = true;
+            }
+        });
+
+        const onMouseEvt = (e) => {
+            e.preventDefault();
+
+            if ( !state.getData.controls[0].enabled ) {
+                const positionOnScene = getPositionOnScene(state.getData.container, e)
+                if (positionOnScene) {
+                    const canvasRect = canvasRef.current._offset;
+                    const simEvt = new MouseEvent(e.type, {
+                        clientX: canvasRect.left + positionOnScene.x,
+                        clientY: canvasRect.top + positionOnScene.y
+                    });
+                    canvasRef.current.upperCanvasEl.dispatchEvent(simEvt);
+                    setActiveObject(activeObject => currentObject);
+                }
+            }
+
         }
 
         const getPositionOnScene = (sceneContainer, evt) => {
@@ -380,6 +386,7 @@ const Uvw = () => {
                     pointer.x = positionOnScene.x;
                     pointer.y = positionOnScene.y;
                 }
+
             }
 
             if (!ignoreZoom) {
@@ -490,7 +497,7 @@ const Uvw = () => {
                 <Save />
             </Button>
             <div ref={containerRef} style={{ padding: '30px', display: 'flex', justifyContent: 'center' }}>
-                <canvas ref={ref} id="canvas" />
+                <canvas ref={ref} id="canvas" style={{border: '1px solid gray'}}/>
             </div>
 
             <TextureTabs handleChange={handleChange} value={value}/>
@@ -498,7 +505,7 @@ const Uvw = () => {
             <div>
                 {
                     TEXTURES_DATA.map((item, i) => {
-                        return <canvas key={i} id={item.name} className={ i === value ? styles.block: styles.none }
+                        return <canvas key={i} id={item.name} className={ /*i === value ? styles.block: */styles.none }
                                        width={width} height={height} ref={el => itemsRef.current[i] = el} />
                     })
                 }

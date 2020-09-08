@@ -37,20 +37,21 @@ const ToolBoxViewport = ({active}) => {
     };
 
     const handleMoveClick = () => {
-        state.getData.transformControls.setMode( "translate" );
+        state.getData.controls[1].setMode( "translate" );
     }
 
     const handleRotateClick = () => {
-        state.getData.transformControls.setMode( "rotate" );
+        state.getData.controls[1].setMode( "rotate" );
     }
 
     const handleScaleClick = () => {
-        state.getData.transformControls.setMode( "scale" );
+        state.getData.controls[1].setMode( "scale" );
     }
 
     return (
         <aside className={ active === 0 ? classes.block : classes.none }>
-            <ToggleButtonGroup orientation="vertical" value={ view } exclusive onChange={ handleChange } className={ classes.group }>
+            <ToggleButtonGroup orientation="vertical" value={ view } exclusive
+                               onChange={ handleChange } className={ classes.group }>
                 <ToggleButton value="arrow" aria-label="arrow" className={ classes.button }>
                     <NearMeIcon />
                 </ToggleButton>

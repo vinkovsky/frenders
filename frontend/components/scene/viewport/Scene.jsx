@@ -1,5 +1,6 @@
 import { Scene as Scene$1 } from 'three';
 import * as THREE from "three";
+import {useEffect} from "react";
 
 
 const Scene = (model, { canvas, maps }, transformControls = null) => {
@@ -10,10 +11,11 @@ const Scene = (model, { canvas, maps }, transformControls = null) => {
 
     model.traverse((child) => {
         if (!child.isMesh) return;
-        child.material.side = THREE.DoubleSide;
+
         if (child.name === 'drink') {
             maps.map((canvas) => {
                 let texture = new THREE.CanvasTexture(canvas);
+                console.log(texture)
                 child.material[canvas.id] = texture;
                 textures.push(texture);
             })
@@ -22,12 +24,12 @@ const Scene = (model, { canvas, maps }, transformControls = null) => {
 
     // canvas.isDrawingMode = true;
     // canvas.freeDrawingBrush.width = 50;
-    canvas.on('path:created', e => {
+    canvas.on('mouse:down', e => {
         textures.map((val) => {
             val.needsUpdate = true;
         })
     });
-  // canvas.on('after:render', canvas._afterRender());
+
     scene.add(model);
     scene.add( new THREE.GridHelper( 1000, 10 ) );
     return scene;

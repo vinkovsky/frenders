@@ -96,12 +96,15 @@ function FooterViewport() {
     }, [coords])
 
     useEffect(() => {
+        console.log(state.getData.controls)
+        if (!state.getData.controls) return;
+
         setCoords({
             x: state.getCoords.x,
             y: state.getCoords.y,
             z: state.getCoords.z
         });
-    }, [state.getData.transformControls?.dragging])
+    }, [state.getData.controls ? state.getData.controls[1].dragging : state.getData.controls])
 
     return (
         <footer className={ classes.footer }>

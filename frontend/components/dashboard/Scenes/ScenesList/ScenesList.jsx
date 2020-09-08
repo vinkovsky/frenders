@@ -11,7 +11,6 @@ const ScenesList = () => {
 
     const { data, loading, error, refetch } = useQuery(ModelsQuery);
 
-
     if (loading) {
         return <CircularProgress className={ classes.progress }/>;
     }

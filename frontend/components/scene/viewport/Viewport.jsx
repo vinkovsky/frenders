@@ -5,7 +5,7 @@ import Renderer from "./renders/Renderer";
 import ViewportSceneContext from "../../../context/ViewportSceneContext";
 
 import ModelIdQuery from "../../../graphql/queries/dashboard/modelId";
-
+import * as THREE from 'three'
 import PhotoCameraIcon from '@material-ui/icons/PhotoCamera';
 import {useMutation, useQuery} from "@apollo/react-hooks";
 import {CircularProgress} from "@material-ui/core";
@@ -78,7 +78,6 @@ const Viewport = React.memo(({ envMaps }) => {
         const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
 
         async function init() {
-
             const gltf = await Loader([GLTFLoader, DRACOLoader], data.model.model.url);
             const env = await Loader([RGBELoader], state.getRenderer.envMap);
 
@@ -87,6 +86,8 @@ const Viewport = React.memo(({ envMaps }) => {
             let objects = [];
             gltf.scene.traverse((child) => {
                 if(!child.isMesh ) return;
+                child.material = new THREE.MeshStandardMaterial()
+                child.material.side = THREE.DoubleSide;
                 objects.push(child.name);
             })
 
@@ -96,7 +97,6 @@ const Viewport = React.memo(({ envMaps }) => {
                     objects
                 }
             });
-
 
             setAssets({ model: gltf.scene, canvas: state.getCanvas, env })
         }

@@ -45,6 +45,11 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
         controlsRef.current[1].addEventListener( 'dragging-changed',  event => {
             controlsRef.current[0].enabled = ! event.value;
+
+        } );
+
+        controlsRef.current[1].addEventListener( 'change',  event => {
+
             dispatch({
                 type: 'getCoords',
                 payload: event.target.object.position
@@ -58,7 +63,7 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
                 scene: sceneRef.current,
                 camera: cameraRef.current,
                 renderer: rendererRef.current,
-                transformControls: controlsRef.current[1],
+                controls: controlsRef.current,
                 model: model
             }
         });
@@ -169,7 +174,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
          effectFXAA.current.uniforms['resolution'].value.set(1 / width, 1 / height);
     }, [width, height, ready])
 
-
     useEffect(() => {
         if (!state.getRenderer.exposureValue) return;
         rendererRef.current.toneMappingExposure = state.getRenderer.exposureValue;
@@ -181,12 +185,14 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
     }, [state.getRenderer.exposureValue, state.getRenderer.toneMappingValue])
 
     useEffect(() => {
-        if (state.getRenderer.envMap === "none") {
+        if (state.getRenderer.background) {
             sceneRef.current.background = new Color(state.getColor);
         } else {
             sceneRef.current.background = hdrRef.current;
         }
-    }, [state.getRenderer.envMap, state.getColor])
+    }, [state.getRenderer.background, state.getColor])
+
+
 
     useEffect(() => {
         if (!state.getRenderer.envMap) return;
@@ -201,8 +207,9 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
             let hdr = pmremGenerator.fromEquirectangular(env).texture;
             hdrRef.current = hdr;
             sceneRef.current.environment = hdr;
-            sceneRef.current.background = hdr;
-
+            if (!state.getRenderer.background) {
+                sceneRef.current.background = hdr;
+            }
             env.dispose()
             pmremGenerator.dispose()
         })()

@@ -26,6 +26,7 @@ import getCurrentObjectReducer from "../../../reducers/getCurrentObjectReducer";
 import getCameraPositionReducer from "../../../reducers/getCameraPositionReducer";
 import getActiveToolboxReducer from "../../../reducers/getActiveToolboxReducer";
 import getCoordsReducer from "../../../reducers/getCoordsReducer";
+import getSettingsBrushReducer from "../../../reducers/getSettingsBrushReducer";
 
 function combineReducers(reducers) {
     return (state = {}, action) => {
@@ -52,7 +53,7 @@ const ViewportScene = () => {
             toneMappingValue: 4,
             exposureValue: 1.5,
             envMap: "none",
-            // background: true
+            background: true
         },
         getColor: '#000000',
         getData: {
@@ -74,6 +75,10 @@ const ViewportScene = () => {
         getCoords: new Vector3(0,0,0),
         getToolbox: {
             active: false,
+        },
+        getSettingsBrush: {
+            color: '#000000',
+            size: 1
         }
     }
 
@@ -86,7 +91,8 @@ const ViewportScene = () => {
         getData: getDataReducer,
         getCamera: getCameraPositionReducer,
         getCoords: getCoordsReducer,
-        getToolbox: getActiveToolboxReducer
+        getToolbox: getActiveToolboxReducer,
+        getSettingsBrush: getSettingsBrushReducer
     }), initialState);
 
     const [combinedState, combinedDispatch] = useMemo(() => [state, dispatch], [state]);

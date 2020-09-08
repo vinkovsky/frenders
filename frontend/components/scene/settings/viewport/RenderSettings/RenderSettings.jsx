@@ -14,7 +14,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { useStyles } from "./RenderSettings.style";
 import {useRouter} from "next/router";
-import {Box} from "@material-ui/core";
+import {Box, FormGroup} from "@material-ui/core";
 import {SketchPicker} from "react-color";
 
 function RenderSettings({ envMaps }) {
@@ -23,7 +23,7 @@ function RenderSettings({ envMaps }) {
     const [state, dispatch] = useContext(ViewportSceneContext);
     const [exposureValue, setExposureValue] = useState(1.5);
     const [toneMappingValue, setToneMappingValue] = useState('4');
-    // const [background, setBackground] = useState(true);
+    const [background, setBackground] = useState(false);
     const [switchBackground, setSwitchBackground] = useState({
         disabled: true,
         pointer: "none"
@@ -40,9 +40,9 @@ function RenderSettings({ envMaps }) {
         setEnvMap(event.target.value);
     }
 
-    // const handleBackgroundChange = () => {
-    //     setBackground(!background)
-    // }
+    const handleBackgroundChange = () => {
+        setBackground(!background)
+    }
 
     const handleSliderExposureChange = (event, newValue) => {
         setExposureValue(newValue);
@@ -57,7 +57,7 @@ function RenderSettings({ envMaps }) {
     };
 
     useEffect(() => {
-        if (envMap === "none") {
+        if (background) {
             setSwitchBackground({
                 disabled: false,
                 pointer: "auto"
@@ -69,7 +69,7 @@ function RenderSettings({ envMaps }) {
                 pointer: "none"
             });
         }
-    }, [envMap])
+    }, [background])
 
     const handleChangeComplete = useCallback((color) => {
         setColor(color.hex);
@@ -82,10 +82,10 @@ function RenderSettings({ envMaps }) {
                 toneMappingValue: parseInt(toneMappingValue),
                 exposureValue: exposureValue,
                 envMap: envMap,
-                // background: background
+                background: background
             }
         });
-    }, [toneMappingValue, exposureValue, envMap])
+    }, [toneMappingValue, exposureValue, envMap, background])
 
     useEffect(() => {
         return () => {
@@ -131,34 +131,14 @@ function RenderSettings({ envMaps }) {
                     <MenuItem value="4">ACESFilmic</MenuItem>
                 </Select>
             </FormControl>
-            <FormControl className={ classes.formControl } component="fieldset">
-                <Typography component="h5">
-                    Окружение
-                </Typography>
-                <Select
-                    value={envMap}
-                    onChange={handleEnvMapChange}
-                    className={classes.select}
-                    aria-label='environment'
-                >
-                    <MenuItem value="none">Нет</MenuItem>
-                    {
-                        envMaps.environments.map((item) => (
-                            <MenuItem key={item.name} value={item.file.url}>
-                                {item.name}
-                            </MenuItem>
-                        ))
-                    }
-                </Select>
-            </FormControl>
-            <FormControl className={ classes.formControl } component="fieldset" disabled={switchBackground.disabled}>
+            <FormControl className={ classes.formControl } component="fieldset" >
                 <Grid container spacing={2} alignItems="center">
-                    {/*<Grid item xs>*/}
-                    {/*    <FormControlLabel control={*/}
-                    {/*        <Switch checked={background} color="primary" name="background"*/}
-                    {/*                onChange={handleBackgroundChange} />*/}
-                    {/*    } label="Фон" />*/}
-                    {/*</Grid>*/}
+                    <Grid item xs>
+                        <FormControlLabel control={
+                            <Switch checked={background} color="primary" name="background"
+                                    onChange={handleBackgroundChange} />
+                        } label="Фон" />
+                    </Grid>
                     <Grid item xs>
                         <FormControlLabel control={
                             <Box style={{ background: color, pointerEvents: switchBackground.pointer }}
@@ -170,6 +150,25 @@ function RenderSettings({ envMaps }) {
                         </div> : null }
                     </Grid>
                 </Grid>
+            </FormControl>
+            <FormControl className={ classes.formControl } component="fieldset">
+                <Typography component="h5">
+                    Окружение
+                </Typography>
+                <Select
+                    value={envMap}
+                    onChange={handleEnvMapChange}
+                    className={classes.select}
+                    aria-label='environment'
+                >
+                    {
+                        envMaps.environments.map((item) => (
+                            <MenuItem key={item.name} value={item.file.url}>
+                                {item.name}
+                            </MenuItem>
+                        ))
+                    }
+                </Select>
             </FormControl>
         </div>
     )

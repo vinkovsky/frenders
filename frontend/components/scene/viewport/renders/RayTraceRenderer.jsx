@@ -17,44 +17,20 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
     const isFirstRun = useRef(true);
     const controlsRef = useRef();
 
-    useEffect(() => {
-        if (!state.getRenderer.envMap) return;
-        if (isFirstRun.current) {
-            isFirstRun.current = false;
-            return;
-        }
-        const { EnvironmentLight } = require("ray-tracing-renderer");
-        const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
-        (async function () {
-            const env = await Loader([RGBELoader], state.getRenderer.envMap);
-            const currentEnv = sceneRef.current.getObjectById(44, true);
-
-            if (currentEnv) {
-                sceneRef.current.remove(currentEnv)
-            }
-            let hdr = new EnvironmentLight(env);
-            // hdr.name = 'environment';
-
-            sceneRef.current.add(hdr);
-
-
-            rendererRef.current.needsUpdate = true;
-          //  sceneRef.current.background = hdr;
-            env.dispose();
-        })()
-
-    }, [state.getRenderer])
-
-
 
     useEffect(() => {
       //  if (!state.getCamera.camera) return;
+
+        if (!(state.getRenderer.exposureValue && state.getRenderer.toneMappingValue)) return;
+
         const { EnvironmentLight, RayTracingRenderer } = require("ray-tracing-renderer");
 
         rendererRef.current = new RayTracingRenderer({
             canvas: canvasRef.current
         });
 
+        rendererRef.current.toneMappingExposure = state.getRenderer.exposureValue;
+        rendererRef.current.toneMapping = state.getRenderer.toneMappingValue;
        // if(state.getCamera)
 
         cameraRef.current = Camera()
@@ -64,6 +40,14 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
         let hdr = new EnvironmentLight(env);
 
         sceneRef.current.add(hdr);
+
+            if (state.getRenderer.background) {
+                sceneRef.current.background = new Color(state.getColor);
+            } else {
+                sceneRef.current.background = null;
+            }
+
+
         rendererRef.current.setSize(1000, 1000)
 
         const animate = (time) => {
@@ -96,9 +80,10 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
             sceneRef.current = null;
             controlsRef.current = null;
         }
-    }, [])
+    }, [state.getRenderer.exposureValue, state.getRenderer.toneMappingValue])
 
     useEffect(() => {
+        if(!rendererRef.current) return;
         // if (!controlsRef.current) return;
         if (state.getCamera.controls && state.getCamera.camera) {
             controlsRef.current.target.copy(state.getCamera.controls.target);
@@ -116,6 +101,13 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
         cameraRef.current.updateProjectionMatrix();
     }, [width, height, rendererRef.current])
 
+
+    useEffect(() => {
+        if(!rendererRef.current) return;
+        if (state.getRenderer.envMap === "none") {
+            sceneRef.current.background = new Color(state.getColor);
+        }
+    }, [state.getRenderer.envMap, state.getColor])
 
     return <canvas ref={canvasRef} />;
 }

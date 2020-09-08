@@ -1,4 +1,5 @@
 const Loader = ([typeLoader, DRACOLoader = null], path) => {
+
     return new Promise(resolve => {
         const loader = new typeLoader();
         if (DRACOLoader) {
