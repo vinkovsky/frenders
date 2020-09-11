@@ -19,10 +19,10 @@ export default function ChooseLayer() {
     const classes = useStyles();
     const router = useRouter();
     const [state, dispatch] = useContext(ViewportSceneContext);
-    const [selected, setSelected] = useState(false);
+    const [selected, setSelected] = useState("1");
     const [visible, setVisible] = useState(true);
     const models = useRef([]);
-
+    const [activeObj, setActiveObj]= useState(null)
     const { data, loading, error, refetch } = useQuery(ModelNameQuery, {
         variables: {
             id: router.query.id
@@ -30,23 +30,50 @@ export default function ChooseLayer() {
     });
 
     let treeViewItems = [];
-    if (state.getObjects.objects !== undefined) {
-        const obj = state.getObjects.objects;
-        for (let key in obj) {
-            if(obj.hasOwnProperty(key)) {
-                treeViewItems.push({id: (+key + 2).toString(), title: obj[key]});
-            }
-        }
+
+    if (state.getCanvas !== undefined) {
+        if (!state.getCanvas) return;
+        state.getCanvas.canvas._objects.map((obj, index) => {
+            treeViewItems.push({id: (index + 2).toString(), title: obj.type + index});
+        })
     }
 
     useEffect(() => {
-        if (!state.getCurrentObject) return;
-        treeViewItems.map((item) => {
-            if (item.title === state.getCurrentObject.name) {
-                setSelected(item.id);
+        state.getCanvas?.canvas.on('mouse:down', (e) => {
+            setActiveObj(state.getCanvas?.canvas.getActiveObjects())
+        })
+        state.getCanvas?.canvas.on('mouse:up', (e) => {
+            setActiveObj(state.getCanvas?.canvas.getActiveObjects())
+        })
+
+    }, [state.getCanvas])
+
+    useEffect(() => {
+        if (!(state.getCanvas && activeObj)) return;
+        if(activeObj.length !== 0)
+        treeViewItems.map((item, index) => {
+            // console.log(item.title, (activeObj))
+            activeObj.map(obj => {
+                if (item.title === (obj.type + obj.id)) {
+                    setSelected(item.id);
+                }
+            })
+
+        })
+        else setSelected("1")
+    }, [activeObj])
+
+    const getObjectHandler = (e, id) => {
+        state.getCanvas?.canvas.getObjects().forEach(function(o) {
+            console.clear()
+            console.log(o.id, id)
+            if(o.id == (id - 2)) {
+                state.getCanvas?.canvas.setActiveObject(o);
+                state.getCanvas?.canvas.renderAll()
+                setSelected(id)
             }
         })
-    }, [state.getCurrentObject])
+    }
 
     if (loading) {
         return <p>Загрузка</p>;
@@ -59,33 +86,16 @@ export default function ChooseLayer() {
 
     const dataTreeView = [{
         id: '1',
-        title: data.model.name,
+        title: 'Холст',
         children: treeViewItems
     }];
 
     const renderLabel = item => {
         return (
-            <div className={classes.labelRoot}
+            state.getCanvas && <div className={classes.labelRoot}
                  onClick={event => {
                      event.preventDefault();
-                     if (item.title === data.model.name) {
-                         setSelected('1');
-                         dispatch({
-                             type: 'getCurrentObject',
-                             payload: {
-                                 name: null,
-                                 object: null
-                             }
-                         })
-                     } else {
-                         dispatch({
-                             type: 'getCurrentObject',
-                             payload: {
-                                 name: item.title,
-                                 object: state.getCurrentObject.object
-                             }
-                         })
-                     }
+                     getObjectHandler(event, item.id)
                  }}
             >
 

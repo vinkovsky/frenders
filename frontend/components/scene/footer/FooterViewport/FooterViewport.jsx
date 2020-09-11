@@ -96,7 +96,6 @@ function FooterViewport() {
     }, [coords])
 
     useEffect(() => {
-        console.log(state.getData.controls)
         if (!state.getData.controls) return;
 
         setCoords({

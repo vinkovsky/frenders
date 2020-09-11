@@ -45,9 +45,6 @@ let CopyShader = {
 };
 
 export const outline = OutlinePass = function( resolution, scene, camera, selectedObjects ) {
-
-    console.log(this)
-
     this.renderScene = scene;
     this.renderCamera = camera;
     this.selectedObjects = selectedObjects !== undefined ? selectedObjects : [];

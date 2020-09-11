@@ -13,6 +13,9 @@ const ModelsQuery = gql`
                 id
                 url
             }
+            uv {
+                url
+            }
         }
     }
 `;

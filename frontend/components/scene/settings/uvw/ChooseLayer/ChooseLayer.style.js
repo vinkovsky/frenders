@@ -6,7 +6,8 @@ export const useStyles = makeStyles((theme) => ({
     },
     root2: {
         height: '150px',
-        flexGrow: 1
+        flexGrow: 1,
+        overflow: 'auto'
     },
     content: {
         color: theme.palette.text.secondary,

@@ -8,16 +8,15 @@ import { Button } from "@material-ui/core";
 import gql from "graphql-tag";
 import axios from 'axios';
 import {useMutation, useQuery} from "@apollo/react-hooks";
-
+import ModelsQuery from "../../../graphql/queries/dashboard/models";
 import useFabric from "./useFabric";
-
 import styles from './Uvw.module.sass'
 import TextureTabs from './TextureTabs'
 import ViewportSceneContext from "../../../context/ViewportSceneContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
 
-const ModelsQuery = gql`
+const ModelsUvwQuery = gql`
     query ModelUvw($id: ID!) {
         model(id: $id) {
             map
@@ -27,6 +26,17 @@ const ModelsQuery = gql`
         }
     }
 `;
+
+const AssetsUvQuery = gql`
+    query ModelUv($id: ID!) {
+        asset(id: $id) {
+            uv {
+                url
+            }
+        }
+    }
+`;
+
 
 const ModelsMutationQuery = gql`
     mutation updateModelJSON(
@@ -74,12 +84,12 @@ const Uvw = () => {
     const itemsRef = useRef([]);
     const canvasRef = useRef();
     const containerRef = useRef()
-    const width = 512, height = 512;
+    const width = 1024, height = 1024;
     const [value, setValue] = useState(0);
     const [activeObject, setActiveObject] = useState(null);
     const activeCanvasRef = useRef();
     const activeContextCanvasRef = useRef();
-
+    const [readyUv, setReadyUv] = useState(false)
     const TEXTURES_DATA = [
         {
             name: 'map',
@@ -98,9 +108,15 @@ const Uvw = () => {
             id: '4',
         }
     ];
-    const { data, loading, error, refetch } = useQuery(ModelsQuery, {
+    const { data, loading, error, refetch } = useQuery(ModelsUvwQuery, {
         variables: {
             id: router.query.id
+        }
+    });
+
+    const { data: dataUv, loading: loadingUv } = useQuery(AssetsUvQuery, {
+        variables: {
+            id: "5f51d8e1a3a8dc0088d1d06c"
         }
     });
 
@@ -141,38 +157,102 @@ const Uvw = () => {
             if (item[0] == '__typename') return;
 
             dataMap[item[0]].push(item[1][0])
+            let i = 0;
             if (item[0] == activeMap) {
-                canvasRef.current.loadFromJSON(item[1][0]);
-                canvasRef.current.renderAll()
+                canvasRef.current.loadFromJSON(item[1][0],canvasRef.current.renderAll.bind(canvasRef.current), (obj, o) => {
+                    o.id = i
+                    i++;
+                } );
+
             }
 
             const sourceCtx = canvasRef.current.getContext('2d');
             const canvas = itemsRef.current.find((canvas) => canvas.id == item[0]);
 
-            const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
+            const myImageData = sourceCtx.getImageData(0, 0, 1024, 1024);
             canvas.getContext('2d').putImageData(myImageData, 0, 0);
 
         })
-
+        console.log(1)
+        setReadyUv(true)
     }, [data])
+
+    const drawCopyOnCanvas = (canvasEl, canvas) => {
+        // save values
+        const vp = canvas.viewportTransform,
+            originalInteractive = canvas.interactive,
+            newVp = [1, 0, 0, 1, 0, 0],
+            originalRetina = canvas.enableRetinaScaling,
+            originalContextTop = canvas.contextTop;
+        // reset
+        canvas.contextTop = null;
+        canvas.enableRetinaScaling = false;
+        canvas.interactive = false;
+        canvas.viewportTransform = newVp;
+        canvas.calcViewportBoundaries();
+        // draw on copy
+        canvas.renderCanvas(canvasEl.getContext('2d'), canvas._objects);
+        // restore values
+        canvas.viewportTransform = vp;
+        canvas.calcViewportBoundaries();
+        canvas.interactive = originalInteractive;
+        canvas.enableRetinaScaling = originalRetina;
+        canvas.contextTop = originalContextTop;
+    }
+
+    useEffect(() => {
+        console.log(dataUv)
+        if (!(canvasRef.current && dataUv?.asset && readyUv)) return;
+
+        fabric.loadSVGFromURL(dataUv.asset.uv.url, (objects, options) => {
+            const svg = fabric.util.groupSVGElements(objects, options);
+
+            svg.left = 512;
+            svg.top = 512;
+            svg.selectable = false;
+            svg.evented = true
+            console.log(svg)
+            svg.scaleToWidth(canvasRef.current.width);
+            svg.scaleToHeight(canvasRef.current.height);
+            //  svg.excludeFromExport = true;
+
+            canvasRef.current.setOverlayImage(svg, canvasRef.current.renderAll.bind(canvasRef.current))
+            console.log(2)
+        });
+    }, [canvasRef.current, dataUv, readyUv])
 
     const ref = useFabric((canvas) => {
         canvasRef.current = canvas;
-        canvas.on({"after:render": function(e) {
-            const sourceCtx = canvas.getContext('2d');
-            const activeContextCanvasRef = activeCanvasRef.current.getContext('2d');
-            const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
-            activeContextCanvasRef.putImageData(myImageData, 0, 0);
-        }});
+        // canvas.on({"after:render": function(e) {
+        //     const sourceCtx = canvas.getContext('2d');
+        //     const activeContextCanvasRef = activeCanvasRef.current.getContext('2d');
+        //     const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
+        //     activeContextCanvasRef.putImageData(myImageData, 0, 0);
+        // }});
+
 
 
             //  canvas.isDrawingMode = true;
         canvas.width = width;
         canvas.height = height;
-        canvas.setWidth(512)
-        canvas.setHeight(512)
+        canvas.setWidth(1024)
+        canvas.setHeight(1024)
 
     });
+
+    useEffect(() => {
+        function _afterRender() {
+            canvasRef.current.off('after:render', _afterRender);
+            drawCopyOnCanvas(activeCanvasRef.current, canvasRef.current);
+            setTimeout(() => {
+                canvasRef.current.on('after:render', _afterRender);
+            });
+        }
+        canvasRef.current.on('after:render', _afterRender);
+        return () => {
+            canvasRef.current.off('after:render', _afterRender);
+        }
+    }, [activeCanvasRef.current])
 
     const saveCanvasHandler = async () => {
         await updateModelJSON({
@@ -331,8 +411,8 @@ const Uvw = () => {
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
                 return {
-                    x: uv.x * 512,
-                    y: uv.y * 512
+                    x: uv.x * 1024,
+                    y: uv.y * 1024
                 }
             } else {
                 currentObject = [];
@@ -418,6 +498,7 @@ const Uvw = () => {
         }
 
     }, [state.getData, activeObject])
+
 
     fabric.Object.prototype.originX = 'center';
     fabric.Object.prototype.originY = 'center';
