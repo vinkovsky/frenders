@@ -131,10 +131,10 @@ const ViewportScene = () => {
                             <Tab label="Uvw" />
                         </Tabs>
                     </Paper>
-                    <div className={ active ? classes.none : classes.block }>
+                    <div className={ classes.block }>
                         <Viewport envMaps={ data } />
                     </div>
-                    <div className={ active ? classes.block : classes.none }>
+                    <div className={ classes.block }>
                         <Uvw />
                     </div>
                     <FooterViewport />
