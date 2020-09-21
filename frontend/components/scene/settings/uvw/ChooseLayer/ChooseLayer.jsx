@@ -21,20 +21,19 @@ export default function ChooseLayer() {
     const [state, dispatch] = useContext(ViewportSceneContext);
     const [selected, setSelected] = useState("1");
     const [visible, setVisible] = useState(true);
-    const models = useRef([]);
-    const [activeObj, setActiveObj]= useState(null)
+    const [activeObj, setActiveObj] = useState(null)
     const { data, loading, error, refetch } = useQuery(ModelNameQuery, {
         variables: {
             id: router.query.id
         }
     });
-
     let treeViewItems = [];
 
     if (state.getCanvas !== undefined) {
         if (!state.getCanvas) return;
         state.getCanvas.canvas._objects.map((obj, index) => {
             treeViewItems.push({id: (index + 2).toString(), title: obj.type + index});
+            obj.id = (index + 2).toString();
         })
     }
 
@@ -45,6 +44,19 @@ export default function ChooseLayer() {
         state.getCanvas?.canvas.on('mouse:up', (e) => {
             setActiveObj(state.getCanvas?.canvas.getActiveObjects())
         })
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete') {
+                const activeObj = state.getCanvas?.canvas.getActiveObjects()
+                if (activeObj) {
+                    activeObj.forEach((object) => {
+                        state.getCanvas?.canvas.remove(object);
+                    });
+                    state.getCanvas?.canvas.discardActiveObject();
+                }
+                state.getCanvas?.canvas.requestRenderAll();
+            }
+
+        })
 
     }, [state.getCanvas])
 
@@ -52,7 +64,6 @@ export default function ChooseLayer() {
         if (!(state.getCanvas && activeObj)) return;
         if(activeObj.length !== 0)
         treeViewItems.map((item, index) => {
-            // console.log(item.title, (activeObj))
             activeObj.map(obj => {
                 if (item.title === (obj.type + obj.id)) {
                     setSelected(item.id);
@@ -65,9 +76,7 @@ export default function ChooseLayer() {
 
     const getObjectHandler = (e, id) => {
         state.getCanvas?.canvas.getObjects().forEach(function(o) {
-            console.clear()
-            console.log(o.id, id)
-            if(o.id == (id - 2)) {
+            if(o.id === id) {
                 state.getCanvas?.canvas.setActiveObject(o);
                 state.getCanvas?.canvas.renderAll()
                 setSelected(id)
@@ -95,7 +104,8 @@ export default function ChooseLayer() {
             state.getCanvas && <div className={classes.labelRoot}
                  onClick={event => {
                      event.preventDefault();
-                     getObjectHandler(event, item.id)
+                     getObjectHandler(event, item.id);
+                     state.getCanvas.canvas.isDrawingMode = false;
                  }}
             >
 

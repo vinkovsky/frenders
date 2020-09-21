@@ -82,7 +82,8 @@ const Uvw = () => {
     const router = useRouter();
     const [state, dispatch] = useContext(ViewportSceneContext);
     const itemsRef = useRef([]);
-    const canvasRef = useRef();
+    const uvwRef = useRef();
+    const drawingRef = useRef();
     const containerRef = useRef()
     const width = 512, height = 512;
     const [value, setValue] = useState(0);
@@ -90,7 +91,7 @@ const Uvw = () => {
     const activeCanvasRef = useRef();
     const activeContextCanvasRef = useRef();
     const [readyUv, setReadyUv] = useState(false)
-
+    const isDrawingRef = useRef(false);
     const zoomRef = useRef(1);
     const lastPosXref = useRef();
     const lastPosYref = useRef();
@@ -139,7 +140,7 @@ const Uvw = () => {
         dispatch({
             type: 'getCanvas',
             payload: {
-                canvas: canvasRef.current,
+                canvas: uvwRef.current,
                 maps: itemsRef.current
             }
         });
@@ -153,62 +154,33 @@ const Uvw = () => {
         // if (activeMap === map) return;
 
         dataMap[map] = [];
-        dataMap[map].push(JSON.stringify(canvasRef.current.toJSON()));
+        dataMap[map].push(JSON.stringify(uvwRef.current.toJSON()));
 
     }
     useEffect(() => {
-        if (!data) return;
+        if (!(data && uvwRef.current && dataUv?.asset)) return;
 
-        Object.entries(data.model).reverse().map((item) => {
-            if (item[0] == '__typename') return;
+        function loadMap(entries, index) {
+            --index;
+            const isset = entries[index][1][0] ? entries[index][1][0] : JSON.stringify(uvwRef.current.toJSON())
 
-            dataMap[item[0]].push(item[1][0])
-            let i = 0;
-            if (item[0] == activeMap) {
-                canvasRef.current.loadFromJSON(item[1][0],canvasRef.current.renderAll.bind(canvasRef.current), (obj, o) => {
-                    o.id = i
-                    i++;
-                } );
 
-            }
+            uvwRef.current.loadFromJSON(isset, () => {
+                dataMap[entries[index][0]].push(isset)
 
-            const sourceCtx = canvasRef.current.getContext('2d');
-            const canvas = itemsRef.current.find((canvas) => canvas.id == item[0]);
+                updateBackground(entries[index][0], uvwRef.current)
 
-            const myImageData = sourceCtx.getImageData(0, 0, width, height);
-            canvas.getContext('2d').putImageData(myImageData, 0, 0);
+                const canvas = itemsRef.current.find((canvas) => canvas.id === entries[index][0]);
 
-        })
-        console.log(1)
-        setReadyUv(true)
-    }, [data])
+                drawCopyOnCanvas(canvas)
 
-    const drawCopyOnCanvas = (canvasEl, canvas) => {
-        // save values
-        const vp = canvas.viewportTransform,
-            originalInteractive = canvas.interactive,
-            newVp = [1, 0, 0, 1, 0, 0],
-            originalRetina = canvas.enableRetinaScaling,
-            originalContextTop = canvas.contextTop;
-        // reset
-        canvas.contextTop = null;
-        canvas.enableRetinaScaling = false;
-        canvas.interactive = false;
-        canvas.viewportTransform = newVp;
-        canvas.calcViewportBoundaries();
-        // draw on copy
-        canvas.renderCanvas(canvasEl.getContext('2d'), canvas._objects);
-        // restore values
-        canvas.viewportTransform = vp;
-        canvas.calcViewportBoundaries();
-        canvas.interactive = originalInteractive;
-        canvas.enableRetinaScaling = originalRetina;
-        canvas.contextTop = originalContextTop;
-    }
-
-    useEffect(() => {
-
-        if (!(canvasRef.current && dataUv?.asset && readyUv)) return;
+                if(index > 0) {
+                    return loadMap(Object.entries(data.model), index)
+                } else {
+                    return null;
+                }
+            });
+        }
 
         fabric.loadSVGFromURL(dataUv.asset.uv.url, (objects, options) => {
             const svg = fabric.util.groupSVGElements(objects, options);
@@ -219,49 +191,141 @@ const Uvw = () => {
             svg.selectable = false;
             svg.evented = true
 
-            svg.scaleToWidth(canvasRef.current.width);
-            svg.scaleToHeight(canvasRef.current.height);
-           // svg.excludeFromExport = true;
+            svg.scaleToWidth(uvwRef.current.width);
+            svg.scaleToHeight(uvwRef.current.height);
+            svg.excludeFromExport = true;
 
-            canvasRef.current.setOverlayImage(svg, canvasRef.current.renderAll.bind(canvasRef.current))
+            loadMap(Object.entries(data.model), Object.entries(data.model).length - 1)
+            uvwRef.current.setOverlayImage(svg, () => {
+
+                uvwRef.current.renderAll()
+                console.log(JSON.stringify(uvwRef.current.toJSON()))
+            })
 
         });
-    }, [canvasRef.current, dataUv, readyUv])
 
-    const ref = useFabric((canvas) => {
-        canvasRef.current = canvas;
-        // canvas.on({"after:render": function(e) {
-        //     const sourceCtx = canvas.getContext('2d');
-        //     const activeContextCanvasRef = activeCanvasRef.current.getContext('2d');
-        //     const myImageData = sourceCtx.getImageData(0, 0, 512, 512);
-        //     activeContextCanvasRef.putImageData(myImageData, 0, 0);
-        // }});
 
-        canvas.containerClass = styles.container
-        console.log(styles.container)
 
-            //  canvas.isDrawingMode = true;
+        setReadyUv(true)
+    }, [data, uvwRef.current, dataUv])
+
+    function updateBackground(map, canvas) {
+        if (map === 'normalMap' && canvas.backgroundColor !== "#8080FF") {
+            canvas.backgroundColor = "#8080FF";
+        } else if (canvas.backgroundColor !== "#FFFFFF") {
+            canvas.backgroundColor = "#FFFFFF";
+        }
+        canvas.renderAll()
+    }
+
+    // useEffect(() => {
+    //
+    //     if (!(uvwRef.current && dataUv?.asset && readyUv)) return;
+    //
+    //     fabric.loadSVGFromURL(dataUv.asset.uv.url, (objects, options) => {
+    //         const svg = fabric.util.groupSVGElements(objects, options);
+    //
+    //         svg.left = svg.width / 4;
+    //         svg.top = svg.height / 4;
+    //
+    //         svg.selectable = false;
+    //         svg.evented = true
+    //
+    //         svg.scaleToWidth(uvwRef.current.width);
+    //         svg.scaleToHeight(uvwRef.current.height);
+    //         // svg.excludeFromExport = true;
+    //
+    //         uvwRef.current.setOverlayImage(svg, uvwRef.current.renderAll.bind(uvwRef.current))
+    //
+    //     });
+    // }, [uvwRef.current, dataUv, readyUv])
+
+    const uvwContainer = styles.container
+    const uvwOpts = {containerClass: uvwContainer}
+
+    const uvwDomRef = useFabric((canvas) => {
+        uvwRef.current = canvas;
         canvas.width = width;
         canvas.height = height;
         canvas.setWidth(width)
         canvas.setHeight(height)
-       // canvas.setDimensions({width: 512, height: 512})
+        canvas.controlsAboveOverlay = true;
+        // canvas.setDimensions({width: 512, height: 512})
     });
-    function _afterRender() {
-        canvasRef.current.off('after:render', _afterRender);
-        drawCopyOnCanvas(activeCanvasRef.current, canvasRef.current);
-        setTimeout(() => {
-            canvasRef.current.on('after:render', _afterRender);
-        });
-        console.log(2312)
-    }
-    useEffect(() => {
-        if(!(activeCanvasRef.current && canvasRef.current)) return;
 
-        canvasRef.current.on('after:render', _afterRender);
+    const drawingDomRef = useFabric((canvas) => {
+        drawingRef.current = canvas;
+        canvas.width = width;
+        canvas.height = height;
+        canvas.setWidth(width)
+        canvas.setHeight(height)
+
+
+        // canvas.setDimensions({width: 512, height: 512})
+    });
+
+    useEffect(() => {
+        if (!(drawingRef.current && uvwRef.current)) return;
+
+        drawingRef.current.freeDrawingBrush.width = uvwRef.current.freeDrawingBrush.width
+        drawingRef.current.freeDrawingBrush.color = uvwRef.current.freeDrawingBrush.color
+        drawingRef.current.isDrawingMode = uvwRef.current.isDrawingMode
+
+    }, [uvwRef.current?.freeDrawingBrush.width, uvwRef.current?.freeDrawingBrush.color, uvwRef.current?.isDrawingMode])
+
+    const drawCopyOnCanvas = (canvasEl, fabricCanvas) => {
+        // save values
+        const vp = uvwRef.current.viewportTransform,
+            originalInteractive = uvwRef.current.interactive,
+            newVp = [1, 0, 0, 1, 0, 0],
+            originalRetina = uvwRef.current.enableRetinaScaling,
+            originalContextTop = uvwRef.current.contextTop;
+        // reset
+        uvwRef.current.contextTop = null;
+        uvwRef.current.enableRetinaScaling = false;
+        uvwRef.current.interactive = false;
+        uvwRef.current.viewportTransform = newVp;
+        uvwRef.current.calcViewportBoundaries();
+        // draw on copy
+        uvwRef.current.renderCanvas(canvasEl.getContext('2d'), uvwRef.current._objects);
+        // restore values
+        uvwRef.current.viewportTransform = vp;
+        uvwRef.current.calcViewportBoundaries();
+        uvwRef.current.interactive = originalInteractive;
+        uvwRef.current.enableRetinaScaling = originalRetina;
+        uvwRef.current.contextTop = originalContextTop;
+    }
+
+    function _afterRender() {
+        uvwRef.current.off('after:render', _afterRender);
+
+        drawCopyOnCanvas(activeCanvasRef.current);
+        setTimeout(() => {
+            uvwRef.current.on('after:render', _afterRender);
+        });
+    }
+
+    function copyThePencil(canvasEl) {
+
+        const ctx = canvasEl.getContext('2d');
+        if (uvwRef.current._isCurrentlyDrawing) {
+            ctx.save();
+            const m = fabric.util.invertTransform(drawingRef.current.viewportTransform);
+            ctx.transform.apply(ctx, m);
+            ctx.drawImage(drawingRef.current.upperCanvasEl, 0, 0,
+                drawingRef.current.upperCanvasEl.width / drawingRef.current.getRetinaScaling(),
+                drawingRef.current.upperCanvasEl.height / drawingRef.current.getRetinaScaling())
+            ctx.restore();
+        }
+    }
+
+    useEffect(() => {
+        if(!(activeCanvasRef.current && uvwRef.current)) return;
+
+        uvwRef.current.on('after:render', _afterRender);
 
         return () => {
-            canvasRef.current.off('after:render', _afterRender);
+            uvwRef.current.off('after:render', _afterRender);
         }
     }, [activeCanvasRef.current])
 
@@ -301,14 +365,14 @@ const Uvw = () => {
                 originX: 'center',
                 originY: 'center',
             })
-            img.scaleToWidth(canvasRef.current.width);
+            img.scaleToWidth(uvwRef.current.width);
 
-            canvasRef.current.add(img);
+            uvwRef.current.add(img);
             img.center();
 
             img.setCoords();
             updateStateMap(itemsRef.current[value].id)
-            canvasRef.current.renderAll()
+            uvwRef.current.renderAll()
 
         }, {
             crossOrigin: 'Anonymous'
@@ -319,24 +383,22 @@ const Uvw = () => {
         setValue(newValue);
     };
 
-    const switchMap = (map) => {
-        if (activeMap !== map) canvasRef.current.remove(...canvasRef.current.getObjects().concat());
+    const switchMap = (map, activeCanvas) => {
+
         if (dataMap[map][0]) {
-            canvasRef.current.loadFromDatalessJSON(dataMap[map][0], canvasRef.current.renderAll.bind(canvasRef.current));
+            uvwRef.current.loadFromJSON(dataMap[map][0], () => {
+
+                updateBackground(map, uvwRef.current)
+                //
+                // drawCopyOnCanvas(activeCanvas);
+            });
         }
 
-        if (map === 'normalMap') {
-            canvasRef.current.backgroundColor = "#8080FF";
-        } else {
-            canvasRef.current.backgroundColor = "#FFFFFF";
-        }
-        canvasRef.current.renderAll();
-        activeMap = map;
     }
 
     useEffect(() => {
         activeCanvasRef.current = itemsRef.current[value];
-        switchMap(itemsRef.current[value].id)
+        switchMap(itemsRef.current[value].id, activeCanvasRef.current)
 
     }, [value])
 
@@ -344,9 +406,9 @@ const Uvw = () => {
         const handleChange = () => {
             updateStateMap(itemsRef.current[value].id)
         }
-        canvasRef.current.on('mouse:up', handleChange)
+        uvwRef.current.on('mouse:up', handleChange)
         return () => {
-            canvasRef.current.off('mouse:up', handleChange)
+            uvwRef.current.off('mouse:up', handleChange)
         }
     }, [itemsRef.current[value]])
 
@@ -375,92 +437,113 @@ const Uvw = () => {
     }, [activeObject])
 
     useEffect(() => {
-        if (!canvasRef.current) return;
-        canvasRef.current.on('mouse:wheel', (opt) => {
+        if (!uvwRef.current) return;
+        uvwRef.current.on('mouse:wheel', (opt) => {
             const delta = opt.e.deltaY;
-            zoomRef.current = canvasRef.current.getZoom();
+            zoomRef.current = uvwRef.current.getZoom();
             zoomRef.current += delta / 200;
             if (zoomRef.current > 20) zoomRef.current = 20;
             if (zoomRef.current < 1) zoomRef.current = 1;
-            const ratio = width / canvasRef.current.wrapperEl.offsetWidth;
-            canvasRef.current.zoomToPoint({ x: opt.e.offsetX * ratio, y: opt.e.offsetY * ratio }, zoomRef.current);
+            const ratio = width / uvwRef.current.wrapperEl.offsetWidth;
+            uvwRef.current.zoomToPoint({ x: opt.e.offsetX * ratio, y: opt.e.offsetY * ratio }, zoomRef.current);
             if (zoomRef.current < 0.1) {
-                canvasRef.current.viewportTransform[4] = canvasRef.current.getWidth() * zoomRef.current;
-                canvasRef.current.viewportTransform[5] = canvasRef.current.getWidth() * zoomRef.current;
+                uvwRef.current.viewportTransform[4] = uvwRef.current.getWidth() * zoomRef.current;
+                uvwRef.current.viewportTransform[5] = uvwRef.current.getWidth() * zoomRef.current;
             } else {
-                if (canvasRef.current.viewportTransform[4] >= 0) {
-                    canvasRef.current.viewportTransform[4] = 0;
-                } else if (canvasRef.current.viewportTransform[4] < canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current) {
-                    canvasRef.current.viewportTransform[4] = canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current;
+                if (uvwRef.current.viewportTransform[4] >= 0) {
+                    uvwRef.current.viewportTransform[4] = 0;
+                } else if (uvwRef.current.viewportTransform[4] < uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current) {
+                    uvwRef.current.viewportTransform[4] = uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current;
                 }
-                if (canvasRef.current.viewportTransform[5] >= 0) {
-                    canvasRef.current.viewportTransform[5] = 0;
-                } else if (canvasRef.current.viewportTransform[5] < canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current) {
-                    canvasRef.current.viewportTransform[5] = canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current;
+                if (uvwRef.current.viewportTransform[5] >= 0) {
+                    uvwRef.current.viewportTransform[5] = 0;
+                } else if (uvwRef.current.viewportTransform[5] < uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current) {
+                    uvwRef.current.viewportTransform[5] = uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current;
                 }
             }
-            canvasRef.current.requestRenderAll()
+            uvwRef.current.requestRenderAll()
             opt.e.preventDefault();
             opt.e.stopPropagation();
         });
 
-        canvasRef.current.on('mouse:down', (opt) => {
+        uvwRef.current.on('mouse:down', (opt) => {
+            isDrawingRef.current = true;
+            if (uvwRef.current.isDrawingMode) {
+
+                const pointer = uvwRef.current.getPointer(opt.e);
+                drawingRef.current.freeDrawingBrush.onMouseDown(pointer, opt);
+            }
+
 
             const evt = opt.e;
             if (evt.altKey === true) {
-                canvasRef.current.isDragging = true;
-                canvasRef.current.selection = false;
-                canvasRef.current.forEachObject((o) => {
+                uvwRef.current.isDragging = true;
+                uvwRef.current.selection = false;
+                uvwRef.current.forEachObject((o) => {
                     o.selectable = false;
                     o.evented = false;
                     o.setCoords();
                 });
-                canvasRef.current._currentTransform = null
+                uvwRef.current._currentTransform = null
                 lastPosXref.current = evt.clientX;
                 lastPosYref.current = evt.clientY;
-                canvasRef.current.discardActiveObject();
+                uvwRef.current.discardActiveObject();
+
             }
-            canvasRef.current.bringToFront(canvasRef.current.getActiveObject())
+            uvwRef.current.bringToFront(uvwRef.current.getActiveObject())
         });
 
-        canvasRef.current.on('mouse:move', (opt) => {
+        uvwRef.current.on('mouse:move', (opt) => {
+            copyThePencil(activeCanvasRef.current)
+            if (isDrawingRef.current && uvwRef.current.isDrawingMode) {
+                const pointer = uvwRef.current.getPointer(opt.e);
+                drawingRef.current.freeDrawingBrush.onMouseMove(pointer, opt);
+            }
 
-            if (canvasRef.current.isDragging) {
+            if (uvwRef.current.isDragging) {
                 const e = opt.e;
                 if (zoomRef.current < 0.1) {
-                    canvasRef.current.viewportTransform[4] = canvasRef.current.getWidth() * zoomRef.current;
-                    canvasRef.current.viewportTransform[5] = canvasRef.current.getWidth() * zoomRef.current;
+                    uvwRef.current.viewportTransform[4] = uvwRef.current.getWidth() * zoomRef.current;
+                    uvwRef.current.viewportTransform[5] = uvwRef.current.getWidth() * zoomRef.current;
                 } else {
-                    canvasRef.current.viewportTransform[4] += e.clientX - lastPosXref.current;
-                    canvasRef.current.viewportTransform[5] += e.clientY - lastPosYref.current;
-                    if (canvasRef.current.viewportTransform[4] >= 0) {
-                        canvasRef.current.viewportTransform[4] = 0;
-                    } else if (canvasRef.current.viewportTransform[4] < canvasRef.current.getWidth() - canvasRef.current.getHeight() * zoomRef.current) {
-                        canvasRef.current.viewportTransform[4] = canvasRef.current.getWidth() - canvasRef.current.getHeight() * zoomRef.current;
+                    uvwRef.current.viewportTransform[4] += e.clientX - lastPosXref.current;
+                    uvwRef.current.viewportTransform[5] += e.clientY - lastPosYref.current;
+                    if (uvwRef.current.viewportTransform[4] >= 0) {
+                        uvwRef.current.viewportTransform[4] = 0;
+                    } else if (uvwRef.current.viewportTransform[4] < uvwRef.current.getWidth() - uvwRef.current.getHeight() * zoomRef.current) {
+                        uvwRef.current.viewportTransform[4] = uvwRef.current.getWidth() - uvwRef.current.getHeight() * zoomRef.current;
                     }
-                    if (canvasRef.current.viewportTransform[5] >= 0) {
-                        canvasRef.current.viewportTransform[5] = 0;
-                    } else if (canvasRef.current.viewportTransform[5] < canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current) {
-                        canvasRef.current.viewportTransform[5] = canvasRef.current.getHeight() - canvasRef.current.getHeight() * zoomRef.current;
+                    if (uvwRef.current.viewportTransform[5] >= 0) {
+                        uvwRef.current.viewportTransform[5] = 0;
+                    } else if (uvwRef.current.viewportTransform[5] < uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current) {
+                        uvwRef.current.viewportTransform[5] = uvwRef.current.getHeight() - uvwRef.current.getHeight() * zoomRef.current;
                     }
                 }
 
-                canvasRef.current.requestRenderAll();
+                uvwRef.current.requestRenderAll();
                 lastPosXref.current = e.clientX;
                 lastPosYref.current = e.clientY;
             }
         });
 
-        canvasRef.current.on('mouse:up', (opt) => {
-            canvasRef.current.isDragging = false;
-            canvasRef.current.selection = true;
-            canvasRef.current.forEachObject((o) => {
+        uvwRef.current.on('mouse:up', (opt) => {
+            isDrawingRef.current = false;
+            if (uvwRef.current.isDrawingMode) {
+                drawingRef.current.clear();
+                drawingRef.current.freeDrawingBrush.onMouseUp(opt);
+                uvwRef.current.requestRenderAll()
+            }
+            drawCopyOnCanvas(activeCanvasRef.current);
+            uvwRef.current.requestRenderAll()
+            uvwRef.current.isDragging = false;
+            uvwRef.current.selection = true;
+            uvwRef.current.forEachObject((o) => {
                 o.selectable = true;
                 o.evented = true;
                 o.setCoords();
             });
         });
-    }, [canvasRef.current])
+    }, [uvwRef.current])
 
     useEffect(() => {
         const { container, scene, camera } = state.getData;
@@ -487,18 +570,20 @@ const Uvw = () => {
             if ( !state.getData.controls[0].enabled ) {
                 const positionOnScene = getPositionOnScene(state.getData.container, e)
                 if (positionOnScene) {
-                    const canvasRect = canvasRef.current._offset;
+                    const canvasRect = uvwRef.current._offset;
                     const simEvt = new MouseEvent(e.type, {
                         clientX: canvasRect.left + positionOnScene.x,
                         clientY: canvasRect.top + positionOnScene.y
                     });
-                    canvasRef.current.upperCanvasEl.dispatchEvent(simEvt);
+                    uvwRef.current.upperCanvasEl.dispatchEvent(simEvt);
                     setActiveObject(activeObject => currentObject);
                 }
             }
 
         }
 
+
+        let cssScaleCanvas = {};
         const getPositionOnScene = (sceneContainer, evt) => {
             let array = getMousePosition(sceneContainer, evt.clientX, evt.clientY);
             onClickPosition.fromArray(array);
@@ -509,30 +594,31 @@ const Uvw = () => {
                 let uv = intersects[0].uv;
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
-                //const retinaScaling = canvasRef.current.getRetinaScaling()
-                const retinaScaling = window.devicePixelRatio
-                const { cssWidth = 1, cssHeight = 1} = cssScaleRef.current
-                console.log(
-                    'uv.x: ', uv.x,
-                    '\n',
-                    'retina: ', window.devicePixelRatio,
-                    '\n',
-                    'cssWidth: ', cssWidth,
-                    '\n',
-                    'canvasWidth: ', width,
-                    '\n',
-                    'zoom: ', zoomRef.current,
-                    '\n',
-                    'viewportTransform: ', canvasRef.current.viewportTransform[4],
-                    '\n',
-                    'cssWidth: ', cssWidth
-                )
-                console.log(uv.x * width / cssWidth * retinaScaling - (canvasRef.current.viewportTransform[4] / (zoomRef.current * retinaScaling * cssWidth)))
+                const retinaScaling = uvwRef.current.getRetinaScaling()
+                //const retinaScaling = window.devicePixelRatio
+                const { cssWidth = 1, cssHeight = 1} = cssScaleCanvas
+
+                // console.log(
+                //     'uv.x: ', uv.x,
+                //     '\n',
+                //     'retina: ', window.devicePixelRatio,
+                //     '\n',
+                //     'cssWidth: ', cssWidth,
+                //     '\n',
+                //     'canvasWidth: ', width,
+                //     '\n',
+                //     'zoom: ', zoomRef.current,
+                //     '\n',
+                //     'viewportTransform: ', canvasRef.current.viewportTransform[4],
+                //     '\n',
+                //     'cssWidth: ', cssWidth
+                // )
+                //console.log(uv.x * width / cssWidth * retinaScaling - (canvasRef.current.viewportTransform[4] / (zoomRef.current * retinaScaling * cssWidth)))
                 return {
-                    // x: uv.x * width / cssWidth * zoomRef.current  + canvasRef.current.viewportTransform[4] / cssWidth ,
-                    // y: uv.y * height / cssHeight * zoomRef.current + canvasRef.current.viewportTransform[5] / cssHeight
-                    x: uv.x * width / cssWidth * retinaScaling ,
-                    y: uv.y * height / cssHeight * retinaScaling 
+                    x: (uv.x * width / cssWidth * zoomRef.current + uvwRef.current.viewportTransform[4]) * retinaScaling,
+                    y: (uv.y * height / cssHeight * zoomRef.current + uvwRef.current.viewportTransform[5]) * retinaScaling
+                    // x: uv.x * width / cssWidth * retinaScaling ,
+                    // y: uv.y * height / cssHeight * retinaScaling
                 }
             } else {
                 currentObject = [];
@@ -598,6 +684,7 @@ const Uvw = () => {
                 pointer.x /= retinaScaling;
                 pointer.y /= retinaScaling;
             }
+
             if (boundsWidth === 0 || boundsHeight === 0) {
                 cssScale = {
                     width: 1,
@@ -610,11 +697,11 @@ const Uvw = () => {
                 };
             }
 
-            const canvasCssScale = {
+            cssScaleCanvas = {
                 cssWidth: cssScale.width,
                 cssHeight: cssScale.height
             }
-            cssScaleRef.current = canvasCssScale
+
             return {
                 x: pointer.x * cssScale.width,
                 y: pointer.y * cssScale.height
@@ -652,6 +739,37 @@ const Uvw = () => {
 
     fabric.Object.prototype.noScaleCache = false;
     fabric.Object.prototype.objectCaching = false;
+
+    fabric.Canvas.prototype.loadFromJSON = function (json, callback, reviver) {
+        if (!json) {
+            return;
+        }
+        // serialize if it wasn't already
+        var serialized = (typeof json === 'string')
+            ? JSON.parse(json)
+            : fabric.util.object.clone(json);
+        var _this = this,
+            clipPath = serialized.clipPath,
+            renderOnAddRemove = this.renderOnAddRemove;
+        this.renderOnAddRemove = false;
+        delete serialized.clipPath;
+        this._enlivenObjects(serialized.objects, function (enlivenedObjects) {
+            // _this.clear();
+            _this.remove(..._this.getObjects().concat())
+            _this._setBgOverlay(serialized, function () {
+                if (clipPath) {
+                    _this._enlivenObjects([clipPath], function (enlivenedCanvasClip) {
+                        _this.clipPath = enlivenedCanvasClip[0];
+                        _this.__setupCanvas.call(_this, serialized, enlivenedObjects, renderOnAddRemove, callback);
+                    });
+                }
+                else {
+                    _this.__setupCanvas.call(_this, serialized, enlivenedObjects, renderOnAddRemove, callback);
+                }
+            });
+        }, reviver);
+        return this;
+    }
 
     fabric.Object.prototype._drawControl = function (
         control,
@@ -712,7 +830,8 @@ const Uvw = () => {
                 <Save />
             </Button>
             <div ref={containerRef} style={{ padding: '30px', display: 'flex', justifyContent: 'center' }}>
-                <canvas ref={ref} id="canvas" style={{border: '1px solid gray'}}/>
+                <canvas ref={uvwDomRef} id="uvw" style={{border: '1px solid gray'}}/>
+                <canvas ref={drawingDomRef} id="drawing" style={{border: '1px solid gray', display: 'none'}}/>
             </div>
 
             <TextureTabs handleChange={handleChange} value={value}/>
@@ -720,7 +839,7 @@ const Uvw = () => {
             <div>
                 {
                     TEXTURES_DATA.map((item, i) => {
-                        return <canvas key={i} id={item.name} className={ i === value ? styles.block : styles.none }
+                        return <canvas key={i} id={item.name} className={ styles.none }
                                        width={width} height={height} ref={el => itemsRef.current[i] = el} />
                     })
                 }

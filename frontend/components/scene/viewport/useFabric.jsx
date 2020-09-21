@@ -7,9 +7,13 @@ const useFabric = (onChange) => {
     const disposeRef = useRef();
     return useCallback((node) => {
         if (node) {
-            fabricRef.current = new fabric.Canvas(node, {
-                //renderOnAddRemove: false
+            fabricRef.current = new fabric.Canvas(node, node.id === 'uvw' ? {
                 containerClass: styles.container
+            } : {
+                selection: false,
+                skipTargetFind: true,
+                renderOnAddRemove: false
+
             });
             if (onChange) {
                 disposeRef.current = onChange(fabricRef.current);

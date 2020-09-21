@@ -1,5 +1,5 @@
 import React from "react";
-import { WebGLRenderer, PMREMGenerator, Color, Vector2, Vector3 } from "three";
+import {WebGLRenderer, PMREMGenerator, Color, Vector2, Vector3, Box3} from "three";
 import { useEffect, useState, useRef,forwardRef, useContext, memo, useCallback } from "react";
 import useFrame from "./useFrame"
 import useResize from "./useResize";
@@ -48,6 +48,29 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
         } );
 
+        let updateCameraFromModel = (camera, model, controls) => {
+            const bounds = computeBoundingBoxFromModel(model);
+            const centroid = new Vector3();
+            bounds.getCenter(centroid);
+
+            const distance = bounds.min.distanceTo(bounds.max);
+
+            camera.position.set(0, (bounds.max.y - bounds.min.y) * 0.75, distance * 2.0);
+
+
+            controls.target.copy(centroid);
+            controls.update();
+
+            console.log(`Camera at ${camera.position.toArray()}`);
+        }
+
+        updateCameraFromModel(cameraRef.current, model, controlsRef.current[0] )
+
+        function computeBoundingBoxFromModel(model) {
+            const bounds = new Box3();
+            bounds.setFromObject(model);
+            return bounds;
+        }
         controlsRef.current[1].addEventListener( 'change',  event => {
 
             dispatch({
