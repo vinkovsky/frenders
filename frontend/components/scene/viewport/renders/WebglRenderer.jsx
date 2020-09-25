@@ -60,8 +60,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
             controls.target.copy(centroid);
             controls.update();
-
-            console.log(`Camera at ${camera.position.toArray()}`);
         }
 
         updateCameraFromModel(cameraRef.current, model, controlsRef.current[0] )
@@ -137,6 +135,7 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
     useEffect(() => {
         if (!state.getCurrentObject.object) return;
+        console.log(state.getCurrentObject.object)
         state.getCurrentObject.object.position.x = state.getCoords.x;
         state.getCurrentObject.object.position.y = state.getCoords.y;
         state.getCurrentObject.object.position.z = state.getCoords.z;

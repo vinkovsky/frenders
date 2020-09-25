@@ -134,10 +134,12 @@ const ViewportScene = () => {
                     <div className={ active === 0 ? classes.block : classes.none }>
                         <Viewport envMaps={ data } />
                     </div>
-                    <div className={ active === 0 ? classes.none : classes.block }>
+                    <div className={ active === 0 ? classes.none : classes.block1 }>
                         <Uvw />
                     </div>
-                    <FooterViewport />
+                    {
+                        active === 0 ? <FooterViewport /> : null
+                    }
                 </div>
                 <SettingsViewport active={ active } envMaps={ data } />
             </ViewportSceneContext.Provider>

@@ -27,6 +27,7 @@ export default function Filters() {
         Brownie: false
     });
 
+
     const intersect = (a, b, ...rest) => {
         if (rest.length === 0) return [...new Set(a)].filter(x => new Set(b).has(x));
         return intersect(a, intersect(b, ...rest));
@@ -65,13 +66,7 @@ export default function Filters() {
                             arr.push([])
                         }
                     })
-
-                  // console.log(arr);
-
                     const intersection = intersect(...arr);
-
-                //    console.log(intersection);
-
                     for (let intersectionKey of intersection) {
                         setFilterCheckers((filterCheckers) => (
                             {
@@ -97,7 +92,6 @@ export default function Filters() {
                 setDisabled(true);
             }
         }
-        state.getCanvas.canvas.requestRenderAll()
         state.getCanvas.canvas.on('selection:created', selectHandler);
         state.getCanvas.canvas.on('selection:updated', selectHandler);
         state.getCanvas.canvas.on('selection:cleared', selectHandler);
@@ -105,6 +99,7 @@ export default function Filters() {
             state.getCanvas.canvas.off({'selection:created': selectHandler}, {'selection:updated': selectHandler, 'selection:cleared': selectHandler});
         }
     }, [state.getCanvas])
+
 
     const handleChange = (event, value) => {
         const selectedObject = state.getCanvas.canvas.getActiveObjects();
@@ -153,7 +148,9 @@ export default function Filters() {
                 selectedObject[0].applyFilters();
             }
         }
+
         state.getCanvas.canvas.renderAll()
+
         setFilterCheckers((filterCheckers) => (
             {
                 ...filterCheckers,

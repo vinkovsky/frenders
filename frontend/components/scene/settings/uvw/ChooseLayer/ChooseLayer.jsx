@@ -44,19 +44,7 @@ export default function ChooseLayer() {
         state.getCanvas?.canvas.on('mouse:up', (e) => {
             setActiveObj(state.getCanvas?.canvas.getActiveObjects())
         })
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Delete') {
-                const activeObj = state.getCanvas?.canvas.getActiveObjects()
-                if (activeObj) {
-                    activeObj.forEach((object) => {
-                        state.getCanvas?.canvas.remove(object);
-                    });
-                    state.getCanvas?.canvas.discardActiveObject();
-                }
-                state.getCanvas?.canvas.requestRenderAll();
-            }
 
-        })
 
     }, [state.getCanvas])
 

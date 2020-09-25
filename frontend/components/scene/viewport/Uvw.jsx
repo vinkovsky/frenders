@@ -96,6 +96,7 @@ const Uvw = () => {
     const lastPosXref = useRef();
     const lastPosYref = useRef();
     const cssScaleRef = useRef({});
+    const clipboardRef = useRef(null);
 
     const TEXTURES_DATA = [
         {
@@ -144,11 +145,7 @@ const Uvw = () => {
                 maps: itemsRef.current
             }
         });
-        // canvas.on('after:render', canvas._afterRender());
-
     }, [data])
-
-
 
     const updateStateMap = (map) => {
         // if (activeMap === map) return;
@@ -197,9 +194,7 @@ const Uvw = () => {
 
             loadMap(Object.entries(data.model), Object.entries(data.model).length - 1)
             uvwRef.current.setOverlayImage(svg, () => {
-
                 uvwRef.current.renderAll()
-                console.log(JSON.stringify(uvwRef.current.toJSON()))
             })
 
         });
@@ -259,7 +254,6 @@ const Uvw = () => {
         canvas.height = height;
         canvas.setWidth(width)
         canvas.setHeight(height)
-
 
         // canvas.setDimensions({width: 512, height: 512})
     });
@@ -367,6 +361,7 @@ const Uvw = () => {
             })
             img.scaleToWidth(uvwRef.current.width);
 
+
             uvwRef.current.add(img);
             img.center();
 
@@ -433,7 +428,7 @@ const Uvw = () => {
                 object: activeObject
             }
         })
-
+        console.log(activeObject.name)
     }, [activeObject])
 
     useEffect(() => {
@@ -473,7 +468,6 @@ const Uvw = () => {
                 const pointer = uvwRef.current.getPointer(opt.e);
                 drawingRef.current.freeDrawingBrush.onMouseDown(pointer, opt);
             }
-
 
             const evt = opt.e;
             if (evt.altKey === true) {
@@ -566,7 +560,6 @@ const Uvw = () => {
 
         const onMouseEvt = (e) => {
             e.preventDefault();
-
             if ( !state.getData.controls[0].enabled ) {
                 const positionOnScene = getPositionOnScene(state.getData.container, e)
                 if (positionOnScene) {
@@ -595,30 +588,10 @@ const Uvw = () => {
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
                 const retinaScaling = uvwRef.current.getRetinaScaling()
-                //const retinaScaling = window.devicePixelRatio
                 const { cssWidth = 1, cssHeight = 1} = cssScaleCanvas
-
-                // console.log(
-                //     'uv.x: ', uv.x,
-                //     '\n',
-                //     'retina: ', window.devicePixelRatio,
-                //     '\n',
-                //     'cssWidth: ', cssWidth,
-                //     '\n',
-                //     'canvasWidth: ', width,
-                //     '\n',
-                //     'zoom: ', zoomRef.current,
-                //     '\n',
-                //     'viewportTransform: ', canvasRef.current.viewportTransform[4],
-                //     '\n',
-                //     'cssWidth: ', cssWidth
-                // )
-                //console.log(uv.x * width / cssWidth * retinaScaling - (canvasRef.current.viewportTransform[4] / (zoomRef.current * retinaScaling * cssWidth)))
                 return {
                     x: (uv.x * width / cssWidth * zoomRef.current + uvwRef.current.viewportTransform[4]) * retinaScaling,
                     y: (uv.y * height / cssHeight * zoomRef.current + uvwRef.current.viewportTransform[5]) * retinaScaling
-                    // x: uv.x * width / cssWidth * retinaScaling ,
-                    // y: uv.y * height / cssHeight * retinaScaling
                 }
             } else {
                 currentObject = [];
@@ -720,6 +693,101 @@ const Uvw = () => {
 
     }, [state.getData, activeObject])
 
+    const _copy = () => {
+        let active = uvwRef.current.getActiveObject()
+        if (active) {
+            active.clone((cloned) => {
+                clipboardRef.current = cloned;
+                cloned.set({
+                    left: cloned.left + 10,
+                    top: cloned.top + 10
+                })
+            });
+        }
+    }
+
+    const _cut = () => {
+        let active = uvwRef.current.getActiveObject()
+        if (active) {
+            active.clone((cloned) => {
+                clipboardRef.current = cloned;
+            });
+        }
+        _delete()
+    }
+
+    const _delete = () => {
+        const activeObj = uvwRef.current.getActiveObjects()
+        if (activeObj) {
+            activeObj.forEach((object) => {
+                uvwRef.current.remove(object);
+            });
+            uvwRef.current.discardActiveObject();
+        }
+        uvwRef.current.setActiveObject(activeObj);
+        setActiveObject(activeObj);
+        uvwRef.current.requestRenderAll();
+    }
+
+    const _paste = () => {
+        if (!clipboardRef.current) return;
+        clipboardRef.current.clone((clonedObj) => {
+            uvwRef.current.discardActiveObject();
+
+            let matrix = clonedObj.calcTransformMatrix();
+            let transforms = fabric.util.qrDecompose(matrix);
+            clonedObj.set({
+                angle: transforms.angle,
+                skewX: transforms.skewX,
+                skewY: transforms.skewY,
+                scaleX: transforms.scaleX,
+                scaleY: transforms.scaleY,
+                top: transforms.translateY,
+                left: transforms.translateX,
+            });
+
+            if (clonedObj.type === 'activeSelection') {
+                clonedObj.canvas = this;
+                clonedObj.forEachObject((obj) => {
+                    uvwRef.current.add(obj);
+                });
+                clonedObj.setCoords();
+            } else {
+                uvwRef.current.add(clonedObj);
+            }
+            clonedObj.top += 10;
+            clonedObj.left += 10;
+            uvwRef.current.setActiveObject(clonedObj);
+            setActiveObject(clonedObj);
+            uvwRef.current.requestRenderAll();
+        });
+    }
+
+    const actions = useCallback((e) => {
+        e.preventDefault();
+
+        if (e.key === 'Delete') {
+            _delete()
+        }
+        if (e.code === 'KeyV' && (e.ctrlKey || e.metaKey)) {
+            _paste()
+        }
+        if (e.code === 'KeyC' && (e.ctrlKey || e.metaKey)) {
+            _copy()
+        }
+        if (e.code === 'KeyX' && (e.ctrlKey || e.metaKey)) {
+            _cut()
+        }
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener('keydown', actions, false)
+
+        return () => {
+            document.removeEventListener('keydown', actions, false);
+        }
+    }, [])
+
 
     fabric.Object.prototype.originX = 'center';
     fabric.Object.prototype.originY = 'center';
@@ -811,7 +879,7 @@ const Uvw = () => {
     };
 
     return (
-        <div>
+        <div className={styles.uvw}>
             <Button variant="contained" component="label"
                     style={{ position: 'absolute', top: 0, right: 0, zIndex: 100, width: '47px', height: '47px', borderRadius: 0 }}
                     color="primary">
@@ -829,9 +897,9 @@ const Uvw = () => {
                     color="primary">
                 <Save />
             </Button>
-            <div ref={containerRef} style={{ padding: '30px', display: 'flex', justifyContent: 'center' }}>
+            <div ref={containerRef} className={styles.containerRef}>
                 <canvas ref={uvwDomRef} id="uvw" style={{border: '1px solid gray'}}/>
-                <canvas ref={drawingDomRef} id="drawing" style={{border: '1px solid gray', display: 'none'}}/>
+                <canvas ref={drawingDomRef} id="drawing" />
             </div>
 
             <TextureTabs handleChange={handleChange} value={value}/>

@@ -14,6 +14,7 @@ import {useRouter} from "next/router";
 import AppContext from "../../../context/AppContext";
 import gql from "graphql-tag";
 import ScenesItem from "../../dashboard/Scenes/ScenesItem/ScenesItem";
+import FooterViewport from "../footer/FooterViewport/FooterViewport";
 
 //import { ContextApp } from "../ViewportScene/ViewportScene";
 
