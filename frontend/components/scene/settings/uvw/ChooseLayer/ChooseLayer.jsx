@@ -32,7 +32,7 @@ export default function ChooseLayer() {
     if (state.getCanvas !== undefined) {
         if (!state.getCanvas) return;
         state.getCanvas.canvas._objects.map((obj, index) => {
-            treeViewItems.push({id: (index + 2).toString(), title: obj.type + index});
+            treeViewItems.push({id: (index + 2).toString(), title: obj.type + index });
             obj.id = (index + 2).toString();
         })
     }
@@ -45,20 +45,20 @@ export default function ChooseLayer() {
             setActiveObj(state.getCanvas?.canvas.getActiveObjects())
         })
 
-
     }, [state.getCanvas])
 
     useEffect(() => {
         if (!(state.getCanvas && activeObj)) return;
-        if(activeObj.length !== 0)
-        treeViewItems.map((item, index) => {
-            activeObj.map(obj => {
-                if (item.title === (obj.type + obj.id)) {
-                    setSelected(item.id);
-                }
+        if(activeObj.length !== 0) {
+            treeViewItems.map((item) => {
+                activeObj.map(obj => {
+                    // console.log(item.title, (obj.type + Math.floor(obj.id/2)))
+                    if (item.title === (obj.type + obj.id)) {
+                        setSelected(item.id);
+                    }
+                })
             })
-
-        })
+        }
         else setSelected("1")
     }, [activeObj])
 

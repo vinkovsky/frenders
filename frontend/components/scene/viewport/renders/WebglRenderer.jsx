@@ -135,10 +135,11 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
     useEffect(() => {
         if (!state.getCurrentObject.object) return;
-        console.log(state.getCurrentObject.object)
-        state.getCurrentObject.object.position.x = state.getCoords.x;
-        state.getCurrentObject.object.position.y = state.getCoords.y;
-        state.getCurrentObject.object.position.z = state.getCoords.z;
+        if(state.getCurrentObject.object.type === "Mesh") {
+            state.getCurrentObject.object.position.x = state.getCoords.x;
+            state.getCurrentObject.object.position.y = state.getCoords.y;
+            state.getCurrentObject.object.position.z = state.getCoords.z;
+        }
     }, [state.getCoords])
 
     useEffect(() => {

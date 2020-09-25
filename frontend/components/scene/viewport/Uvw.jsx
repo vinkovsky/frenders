@@ -60,7 +60,6 @@ const ModelsMutationQuery = gql`
             }
         ) {
             model {
-
                 roughnessMap
                 metalnessMap
                 normalMap
@@ -97,6 +96,7 @@ const Uvw = () => {
     const lastPosYref = useRef();
     const cssScaleRef = useRef({});
     const clipboardRef = useRef(null);
+    let index = 0;
 
     const TEXTURES_DATA = [
         {
@@ -151,6 +151,11 @@ const Uvw = () => {
         // if (activeMap === map) return;
 
         dataMap[map] = [];
+
+        // uvwRef.current._objects.map((item, index) => {
+        //     item.id = (index).toString();
+        // })
+
         dataMap[map].push(JSON.stringify(uvwRef.current.toJSON()));
 
     }
@@ -160,7 +165,6 @@ const Uvw = () => {
         function loadMap(entries, index) {
             --index;
             const isset = entries[index][1][0] ? entries[index][1][0] : JSON.stringify(uvwRef.current.toJSON())
-
 
             uvwRef.current.loadFromJSON(isset, () => {
                 dataMap[entries[index][0]].push(isset)
@@ -192,14 +196,13 @@ const Uvw = () => {
             svg.scaleToHeight(uvwRef.current.height);
             svg.excludeFromExport = true;
 
-            loadMap(Object.entries(data.model), Object.entries(data.model).length - 1)
+            loadMap(Object.entries(data.model), Object.entries(data.model).length - 1);
+
             uvwRef.current.setOverlayImage(svg, () => {
                 uvwRef.current.renderAll()
             })
 
         });
-
-
 
         setReadyUv(true)
     }, [data, uvwRef.current, dataUv])
@@ -261,9 +264,9 @@ const Uvw = () => {
     useEffect(() => {
         if (!(drawingRef.current && uvwRef.current)) return;
 
-        drawingRef.current.freeDrawingBrush.width = uvwRef.current.freeDrawingBrush.width
-        drawingRef.current.freeDrawingBrush.color = uvwRef.current.freeDrawingBrush.color
-        drawingRef.current.isDrawingMode = uvwRef.current.isDrawingMode
+        drawingRef.current.freeDrawingBrush.width = uvwRef.current.freeDrawingBrush.width;
+        drawingRef.current.freeDrawingBrush.color = uvwRef.current.freeDrawingBrush.color;
+        drawingRef.current.isDrawingMode = uvwRef.current.isDrawingMode;
 
     }, [uvwRef.current?.freeDrawingBrush.width, uvwRef.current?.freeDrawingBrush.color, uvwRef.current?.isDrawingMode])
 
@@ -361,11 +364,11 @@ const Uvw = () => {
             })
             img.scaleToWidth(uvwRef.current.width);
 
-
             uvwRef.current.add(img);
             img.center();
 
             img.setCoords();
+            setActiveObject(img)
             updateStateMap(itemsRef.current[value].id)
             uvwRef.current.renderAll()
 
@@ -378,7 +381,7 @@ const Uvw = () => {
         setValue(newValue);
     };
 
-    const switchMap = (map, activeCanvas) => {
+    const switchMap = (map/*, activeCanvas*/) => {
 
         if (dataMap[map][0]) {
             uvwRef.current.loadFromJSON(dataMap[map][0], () => {
@@ -393,8 +396,14 @@ const Uvw = () => {
 
     useEffect(() => {
         activeCanvasRef.current = itemsRef.current[value];
-        switchMap(itemsRef.current[value].id, activeCanvasRef.current)
-
+        switchMap(itemsRef.current[value].id/*, activeCanvasRef.current*/)
+        dispatch({
+            type: 'getCanvas',
+            payload: {
+                canvas: uvwRef.current,
+                maps: itemsRef.current
+            }
+        });
     }, [value])
 
     useEffect(() => {
@@ -428,7 +437,6 @@ const Uvw = () => {
                 object: activeObject
             }
         })
-        console.log(activeObject.name)
     }, [activeObject])
 
     useEffect(() => {
@@ -537,6 +545,12 @@ const Uvw = () => {
                 o.setCoords();
             });
         });
+
+        // uvwRef.current.on("path:created", function (opt) {
+        //     opt.path.id = fabric.Object.__uid++
+        //     console.log(opt.path.id)
+        // });
+
     }, [uvwRef.current])
 
     useEffect(() => {
@@ -572,9 +586,7 @@ const Uvw = () => {
                     setActiveObject(activeObject => currentObject);
                 }
             }
-
         }
-
 
         let cssScaleCanvas = {};
         const getPositionOnScene = (sceneContainer, evt) => {
@@ -652,7 +664,6 @@ const Uvw = () => {
                 }
             }
 
-
             if (retinaScaling !== 1) {
                 pointer.x /= retinaScaling;
                 pointer.y /= retinaScaling;
@@ -723,8 +734,9 @@ const Uvw = () => {
                 uvwRef.current.remove(object);
             });
             uvwRef.current.discardActiveObject();
+
         }
-        uvwRef.current.setActiveObject(activeObj);
+         // uvwRef.current.setActiveObject(activeObj);
         setActiveObject(activeObj);
         uvwRef.current.requestRenderAll();
     }
@@ -755,8 +767,6 @@ const Uvw = () => {
             } else {
                 uvwRef.current.add(clonedObj);
             }
-            clonedObj.top += 10;
-            clonedObj.left += 10;
             uvwRef.current.setActiveObject(clonedObj);
             setActiveObject(clonedObj);
             uvwRef.current.requestRenderAll();

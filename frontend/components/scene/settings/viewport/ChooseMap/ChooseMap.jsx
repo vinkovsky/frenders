@@ -149,7 +149,7 @@ export default function ChooseMap() {
                         name="roughness"
                         onChange={handleIntensityChange}
                     />
-                    <FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="roughness" color="primary" />} label="Включено" />
+                    {/*<FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="roughness" color="primary" />} label="Включено" />*/}
                 </Box>
             </div>
             <div className={ value === 2 ? classes.block : classes.none }>
@@ -169,7 +169,7 @@ export default function ChooseMap() {
                         name="metalness"
                         onChange={handleIntensityChange}
                     />
-                    <FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="metalness" color="primary" />} label="Включено" />
+                    {/*<FormControlLabel className={classes.label} control={<Switch defaultChecked onChange={handleChangeVisible} name="metalness" color="primary" />} label="Включено" />*/}
                 </Box>
             </div>
             <div className={ value === 3 ? classes.block : classes.none }>
