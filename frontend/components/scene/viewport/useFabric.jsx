@@ -8,8 +8,9 @@ const useFabric = (onChange) => {
     return useCallback((node) => {
         if (node) {
             fabricRef.current = new fabric.Canvas(node, node.id === 'uvw' ? {
-                containerClass: styles.container
+                containerClass: styles.uvwContainer
             } : {
+                containerClass: styles.drawingContainer,
                 selection: false,
                 skipTargetFind: true,
                 renderOnAddRemove: false
