@@ -13,7 +13,7 @@ import useFabric from "./useFabric";
 import styles from './Uvw.module.sass'
 import TextureTabs from './TextureTabs'
 import ViewportSceneContext from "../../../context/ViewportSceneContext";
-import {history} from './history' 
+import {history} from './history'
 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
@@ -174,7 +174,7 @@ const Uvw = () => {
                 updateBackground(entries[index][0], uvwRef.current)
 
                 const canvas = itemsRef.current.find((canvas) => canvas.id === entries[index][0]);
-                
+
                 drawCopyOnCanvas(canvas)
               //  uvwRef.current.onHistory();
                 if(index > 0) {
@@ -256,7 +256,7 @@ const Uvw = () => {
         canvas._historyNext = function () {
             return JSON.stringify(this.toDatalessJSON(this.extraProps));
           }
-          
+
           /**
            * Returns an object with fabricjs event mappings
            */
@@ -268,7 +268,7 @@ const Uvw = () => {
               'object:skewing': this._historySaveAction
             }
           }
-          
+
           /**
            * Initialization of the plugin
            */
@@ -277,33 +277,33 @@ const Uvw = () => {
             this.historyRedo = [];
             this.extraProps = ['selectable'];
             this.historyNextState = this._historyNext();
-            
+
             this.on(this._historyEvents());
           }
-          
+
           /**
            * Remove the custom event listeners
            */
           canvas._historyDispose = function () {
             this.off(this._historyEvents())
           }
-          
+
           /**
            * It pushes the state of the canvas into history stack
            */
           canvas._historySaveAction = function () {
-          
+
             if (this.historyProcessing)
               return;
-          
+
             const json = this.historyNextState;
             this.historyUndo.push(json);
             this.historyNextState = this._historyNext();
             this.fire('history:append', { json: json });
           }
-          
+
           /**
-           * Undo to latest history. 
+           * Undo to latest history.
            * Pop the latest state of the history. Re-render.
            * Also, pushes into redo history.
            */
@@ -312,7 +312,7 @@ const Uvw = () => {
             // Therefore, object:added and object:modified events will triggered again
             // To ignore those events, we are setting a flag.
             this.historyProcessing = true;
-          
+
             const history = this.historyUndo.pop();
             if (history) {
               // Push the current state to the redo history
@@ -322,8 +322,9 @@ const Uvw = () => {
             } else {
               this.historyProcessing = false;
             }
+
           }
-          
+
           /**
            * Redo to latest undo history.
            */
@@ -342,20 +343,20 @@ const Uvw = () => {
               this.historyProcessing = false;
             }
           }
-          
+
           canvas._loadHistory = function(history, event, callback) {
             var self = this;
-          
+
             this.loadFromJSON(history, function() {
                 self.renderAll();
                 self.fire(event);
                 self.historyProcessing = false;
-          
+
               if (callback && typeof callback === 'function')
                 callback();
             });
           }
-          
+
           /**
            * Clear undo and redo history stacks
            */
@@ -364,24 +365,24 @@ const Uvw = () => {
             this.historyRedo = [];
             this.fire('history:clear');
           }
-          
+
           /**
            * Off the history
            */
           canvas.offHistory = function() {
             this.historyProcessing = true;
           }
-          
+
           /**
            * On the history
            */
           canvas.onHistory = function() {
             this.historyProcessing = false;
-          
+
             this._historySaveAction();
           }
 
-          
+
         // canvas.setDimensions({width: 512, height: 512})
     });
 
@@ -406,7 +407,7 @@ const Uvw = () => {
 
     const drawCopyOnCanvas = (canvasEl, fabricCanvas) => {
         // save values
-     
+
         const vp = uvwRef.current.viewportTransform,
             originalInteractive = uvwRef.current.interactive,
             newVp = [1, 0, 0, 1, 0, 0],
@@ -503,7 +504,15 @@ const Uvw = () => {
             img.center();
 
             img.setCoords();
-            setActiveObject(img)
+            dispatch({
+                type: 'getCanvas',
+                payload: {
+                    canvas: uvwRef.current,
+                    maps: itemsRef.current
+                }
+            });
+            //setActiveObject(img)
+
             updateStateMap(itemsRef.current[value].id)
             uvwRef.current.renderAll()
 
@@ -527,7 +536,7 @@ const Uvw = () => {
                 // drawCopyOnCanvas(activeCanvas);
             });
         }
-     
+
     }
 
     useEffect(() => {
@@ -577,7 +586,7 @@ const Uvw = () => {
 
     useEffect(() => {
         if (!uvwRef.current) return;
-      
+
 
         uvwRef.current.on('mouse:wheel', (opt) => {
             const delta = opt.e.deltaY;
@@ -928,17 +937,30 @@ const Uvw = () => {
         }
         if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) {
            uvwRef.current.undo()
-           console.log(uvwRef.current)
+            dispatch({
+                type: 'getCanvas',
+                payload: {
+                    canvas: uvwRef.current,
+                    maps: itemsRef.current
+                }
+            });
         }
         if (e.code === 'KeyY' && (e.ctrlKey || e.metaKey)) {
             uvwRef.current.redo()
+            dispatch({
+                type: 'getCanvas',
+                payload: {
+                    canvas: uvwRef.current,
+                    maps: itemsRef.current
+                }
+            });
         }
     }, []);
 
     useEffect(() => {
 
         if (!uvwRef.current) return
-       
+
         document.addEventListener('keydown', actions, false)
 
         return () => {

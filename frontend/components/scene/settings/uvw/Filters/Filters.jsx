@@ -157,6 +157,7 @@ export default function Filters() {
                 [event.target.name]: event.target.checked
             }
         ));
+
     };
 
     return (
@@ -165,7 +166,7 @@ export default function Filters() {
                 <FormGroup>
                     {
                         Object.entries(filterCheckers).map((name, index) => {
-                            return <FormControlLabel value={name[0]} disabled={disabled}  key={`filter-${index}`} control={
+                            return <FormControlLabel value={name[0]} disabled={disabled} key={`filter-${index}`} control={
                                 <Checkbox
                                     checked={name[1]}
                                     onChange={handleChange}
