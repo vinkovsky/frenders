@@ -118,18 +118,20 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
     }, [ state.getCamera])
 
     useEffect(() => {
-        if (!state.getCurrentObject.object) return;
+        if (!(state.getCurrentObject.object && outlinePass.current)) return;
         if ( state.getToolbox.active && (controlsRef.current[1].object === undefined ||
             controlsRef.current[1].object !== state.getCurrentObject.object ) ) {
             controlsRef.current[1].attach( state.getCurrentObject.object );
         } else {
             controlsRef.current[1].detach( state.getCurrentObject.object );
         }
-        if (outlinePass.current) {
-            outlinePass.current.selectedObjects = [state.getCurrentObject.object]
-        }
+        console.log(state.getCurrentObject.object)
+       // if (outlinePass.current) {
 
-    }, [state.getCurrentObject.object, state.getToolbox.active])
+            outlinePass.current.selectedObjects = [state.getCurrentObject.object]
+     //   }
+
+    }, [state.getCurrentObject.object, state.getToolbox.active, outlinePass.current])
 
     useEffect(() => {
         if (!state.getCurrentObject.object) return;

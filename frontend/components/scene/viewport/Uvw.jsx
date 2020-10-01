@@ -699,40 +699,54 @@ const Uvw = () => {
 
     }, [uvwRef.current])
 
-    useEffect(() => {
+    const [enabledControls, setEnabledControls] = useState(true)
+    const isEnabled = useRef(true)
+
+    const keydown = useCallback((e) => {
+        const { controls } = state.getData;
+        if (!controls) return;
+        if (e.key == 'Alt') {
+            setEnabledControls(false)
+            state.getData.controls[0].enabled = false;
+            console.log(enabledControls)
+        }
+    }, [state.getData, enabledControls])
+
+
+    const keyup = useCallback((e) => {
+        const { controls } = state.getData;
+        if (!controls) return;
+        if (e.key == 'Alt') {
+            setEnabledControls(true)
+            state.getData.controls[0].enabled = true;
+            console.log(enabledControls)
+        }
+    }, [state.getData, enabledControls])
+
+    useLayoutEffect(() => {
+        const { container, controls } = state.getData;
+        if (!(container && controls)) return;
+        state.getData.container.addEventListener('keydown', keydown);
+        state.getData.container.addEventListener('keyup', keyup);
+
+        return () => {
+            state.getData.container.removeEventListener('keydown', keydown);
+            state.getData.container.removeEventListener('keyup', keyup);
+        }
+
+    }, [state.getData, enabledControls])
+
+    useLayoutEffect(() => {
         const { container, scene, camera } = state.getData;
         if (!(container && scene && camera)) return;
 
         let onClickPosition = new Vector2();
         let currentObject = null;
-        state.getData.container.addEventListener('keydown', (e) => {
-            //   e.preventDefault()
-            if (e.key == 'Alt') {
-                state.getData.controls[0].enabled = false;
-            }
-        });
-        state.getData.container.addEventListener('keyup', (e) => {
-            // e.preventDefault()
-            if (e.key == 'Alt') {
-                state.getData.controls[0].enabled = true;
-            }
-        });
 
-        const onMouseEvt = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if ( !state.getData.controls[0].enabled ) {
-                const positionOnScene = getPositionOnScene(state.getData.container, e)
-                if (positionOnScene) {
-                    const canvasRect = uvwRef.current._offset;
-                    const simEvt = new MouseEvent(e.type, {
-                        clientX: canvasRect.left + positionOnScene.x,
-                        clientY: canvasRect.top + positionOnScene.y
-                    });
-                    uvwRef.current.upperCanvasEl.dispatchEvent(simEvt);
-                    setActiveObject(activeObject => currentObject);
-                }
-            }
+
+        function getMousePosition (dom, x, y)  {
+            let rect = dom.getBoundingClientRect();
+            return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
         }
 
         let cssScaleCanvas = {};
@@ -757,11 +771,25 @@ const Uvw = () => {
             }
             return null;
         }
+        const onMouseEvt = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(enabledControls)
+            if ( !enabledControls ) {
+                const positionOnScene = getPositionOnScene(state.getData.container, e)
 
-        function getMousePosition (dom, x, y)  {
-            let rect = dom.getBoundingClientRect();
-            return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
+                if (positionOnScene) {
+                    const canvasRect = uvwRef.current._offset;
+                    const simEvt = new MouseEvent(e.type, {
+                        clientX: canvasRect.left + positionOnScene.x,
+                        clientY: canvasRect.top + positionOnScene.y
+                    });
+                    uvwRef.current.upperCanvasEl.dispatchEvent(simEvt);
+                    setActiveObject(activeObject => currentObject);
+                }
+            }
         }
+
 
         function getIntersects (point, objects) {
             const mouse = new Vector2()
@@ -849,7 +877,7 @@ const Uvw = () => {
             state.getData.container.removeEventListener("mousedown", onMouseEvt, false);
         }
 
-    }, [state.getData, activeObject])
+    }, [state.getData, activeObject, enabledControls])
 
     const _copy = () => {
         let active = uvwRef.current.getActiveObject()
@@ -959,7 +987,7 @@ const Uvw = () => {
                 }
             });
         }
-    }, []);
+    }, [value]);
 
     useEffect(() => {
 
@@ -970,7 +998,7 @@ const Uvw = () => {
         return () => {
             document.removeEventListener('keydown', actions, false);
         }
-    }, [uvwRef.current])
+    }, [uvwRef.current, value])
 
 
     fabric.Object.prototype.originX = 'center';
