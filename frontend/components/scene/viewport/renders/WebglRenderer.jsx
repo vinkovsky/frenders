@@ -57,7 +57,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
 
             camera.position.set(0, (bounds.max.y - bounds.min.y) * 0.75, distance * 2.0);
 
-
             controls.target.copy(centroid);
             controls.update();
         }
@@ -70,7 +69,6 @@ const WebglRenderer = ({ assets: { model, canvas, env } }) => {
             return bounds;
         }
         controlsRef.current[1].addEventListener( 'change',  event => {
-
             dispatch({
                 type: 'getCoords',
                 payload: event.target.object.position

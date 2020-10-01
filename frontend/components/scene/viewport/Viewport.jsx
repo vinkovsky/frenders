@@ -1,4 +1,4 @@
-import React, { Component, useContext, useEffect, useState } from "react";
+import React, { Component, useContext, useEffect, useState, useRef } from "react";
 import Button from '@material-ui/core/Button';
 import Loader from "./Loader";
 import Renderer from "./renders/Renderer";
@@ -43,6 +43,8 @@ const Viewport = React.memo(({ envMaps }) => {
     const [assets, setAssets] = useState(null);
     const [active, setActive] = useState(true);
     const [state, dispatch] = useContext(ViewportSceneContext);
+    const modelRef = useRef(null);
+    const envRef = useRef(null);
 
     const router = useRouter();
 
@@ -81,7 +83,7 @@ const Viewport = React.memo(({ envMaps }) => {
         async function init() {
             const gltf = await Loader([GLTFLoader, DRACOLoader], data.model.model.url);
             const env = await Loader([RGBELoader], state.getRenderer.envMap);
-
+            envRef.current = env;
             env.dispose();
 
             let objects = [];
@@ -91,18 +93,29 @@ const Viewport = React.memo(({ envMaps }) => {
                 child.material.side = THREE.DoubleSide;
                 objects.push(child.name);
             })
-
+            modelRef.current = gltf.scene
             dispatch({
                 type: 'getObjects',
                 payload: {
                     objects
                 }
             });
-
-            setAssets({ model: gltf.scene, canvas: state.getCanvas, env })
         }
         init();
-    }, [state.getCanvas, state.getRenderer.envMap, data])
+    }, [data])
+
+    useEffect(() => {
+        if (!state.getCanvas || !state.getRenderer.envMap || !modelRef.current || !envRef.current) return;
+        const { RGBELoader } = require("three/examples/jsm/loaders/RGBELoader");
+
+        async function init() {
+            const env = await Loader([RGBELoader], state.getRenderer.envMap);
+            envRef.current = env;
+            env.dispose();
+            setAssets({ model: modelRef.current, canvas: state.getCanvas, env: envRef.current })
+        }
+        init();
+    }, [state.getCanvas, state.getRenderer.envMap, modelRef.current, envRef.current])
 
     if (!assets) {
         return null;

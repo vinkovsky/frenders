@@ -70,6 +70,7 @@ function MaterialOptions() {
                 })
                 setColor(prop.color)
             }
+
         }
     }, [state.getCurrentObject])
 
@@ -92,9 +93,10 @@ function MaterialOptions() {
         if (prop.transparent) state.getCurrentObject.object.material.opacity = 0.5;
         state.getCurrentObject.object.material.shadowCatcher = prop.shadowCatcher;
         if (prop.shadowCatcher) state.getCurrentObject.object.material.opacity = 0;
+
     }, [stateSwitch, color])
 
-    return (
+     return (
         <>
             <FormControl component="fieldset" disabled={disabledOptions.disabled} >
                 <FormGroup>

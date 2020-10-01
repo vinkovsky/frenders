@@ -11,7 +11,6 @@ const Scene = (model, { canvas, maps }, transformControls = null) => {
 
     model.traverse((child) => {
         if (!child.isMesh) return;
-
         if (child.name === 'drink') {
             maps.map((canvas) => {
                 let texture = new THREE.CanvasTexture(canvas);
@@ -24,6 +23,20 @@ const Scene = (model, { canvas, maps }, transformControls = null) => {
     // canvas.isDrawingMode = true;
     // canvas.freeDrawingBrush.width = 50;
     canvas.on('mouse:move', e => {
+
+        textures.map((val) => {
+            val.needsUpdate = true;
+        })
+    });
+
+    canvas.on('object:added', e => {
+
+        textures.map((val) => {
+            val.needsUpdate = true;
+        })
+    });
+
+    canvas.on('object:removed', e => {
 
         textures.map((val) => {
             val.needsUpdate = true;

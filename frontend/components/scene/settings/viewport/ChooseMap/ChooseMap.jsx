@@ -83,7 +83,6 @@ export default function ChooseMap() {
                 intensity: dataMap[event.target.name].intensity
             }
         });
-        console.log(state.getCurrentObject.object);
     };
 
     const handleIntensityChange = (event) => {

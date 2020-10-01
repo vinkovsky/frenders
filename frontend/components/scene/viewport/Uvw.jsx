@@ -176,7 +176,7 @@ const Uvw = () => {
                 const canvas = itemsRef.current.find((canvas) => canvas.id === entries[index][0]);
 
                 drawCopyOnCanvas(canvas)
-              //  uvwRef.current.onHistory();
+                //  uvwRef.current.onHistory();
                 if(index > 0) {
                     return loadMap(Object.entries(data.model), index)
                 } else {
@@ -188,7 +188,7 @@ const Uvw = () => {
 
         fabric.loadSVGFromURL(dataUv.asset.uv.url, (objects, options) => {
             const svg = fabric.util.groupSVGElements(objects, options);
-           // uvwRef.current.offHistory();
+            // uvwRef.current.offHistory();
             svg.left = svg.width / 4;
             svg.top = svg.height / 4;
 
@@ -203,8 +203,8 @@ const Uvw = () => {
 
             uvwRef.current.setOverlayImage(svg, () => {
                 uvwRef.current.renderAll()
-               // uvwRef.current._historyInit()
-               // uvwRef.current.onHistory();
+                // uvwRef.current._historyInit()
+                // uvwRef.current.onHistory();
             })
 
         });
@@ -255,59 +255,59 @@ const Uvw = () => {
         canvas.controlsAboveOverlay = true;
         canvas._historyNext = function () {
             return JSON.stringify(this.toDatalessJSON(this.extraProps));
-          }
+        }
 
-          /**
-           * Returns an object with fabricjs event mappings
-           */
-          canvas._historyEvents = function() {
+        /**
+         * Returns an object with fabricjs event mappings
+         */
+        canvas._historyEvents = function() {
             return {
-              'object:added': this._historySaveAction,
-              'object:removed': this._historySaveAction,
-              'object:modified': this._historySaveAction,
-              'object:skewing': this._historySaveAction
+                'object:added': this._historySaveAction,
+                'object:removed': this._historySaveAction,
+                'object:modified': this._historySaveAction,
+                'object:skewing': this._historySaveAction
             }
-          }
+        }
 
-          /**
-           * Initialization of the plugin
-           */
-          canvas._historyInit = function () {
+        /**
+         * Initialization of the plugin
+         */
+        canvas._historyInit = function () {
             this.historyUndo = [];
             this.historyRedo = [];
             this.extraProps = ['selectable'];
             this.historyNextState = this._historyNext();
 
             this.on(this._historyEvents());
-          }
+        }
 
-          /**
-           * Remove the custom event listeners
-           */
-          canvas._historyDispose = function () {
+        /**
+         * Remove the custom event listeners
+         */
+        canvas._historyDispose = function () {
             this.off(this._historyEvents())
-          }
+        }
 
-          /**
-           * It pushes the state of the canvas into history stack
-           */
-          canvas._historySaveAction = function () {
+        /**
+         * It pushes the state of the canvas into history stack
+         */
+        canvas._historySaveAction = function () {
 
             if (this.historyProcessing)
-              return;
+                return;
 
             const json = this.historyNextState;
             this.historyUndo.push(json);
             this.historyNextState = this._historyNext();
             this.fire('history:append', { json: json });
-          }
+        }
 
-          /**
-           * Undo to latest history.
-           * Pop the latest state of the history. Re-render.
-           * Also, pushes into redo history.
-           */
-          canvas.undo = function (callback) {
+        /**
+         * Undo to latest history.
+         * Pop the latest state of the history. Re-render.
+         * Also, pushes into redo history.
+         */
+        canvas.undo = function (callback) {
             // The undo process will render the new states of the objects
             // Therefore, object:added and object:modified events will triggered again
             // To ignore those events, we are setting a flag.
@@ -315,36 +315,36 @@ const Uvw = () => {
 
             const history = this.historyUndo.pop();
             if (history) {
-              // Push the current state to the redo history
-              this.historyRedo.push(this._historyNext());
-              this.historyNextState = history;
-              this._loadHistory(history, 'history:undo', callback);
+                // Push the current state to the redo history
+                this.historyRedo.push(this._historyNext());
+                this.historyNextState = history;
+                this._loadHistory(history, 'history:undo', callback);
             } else {
-              this.historyProcessing = false;
+                this.historyProcessing = false;
             }
 
-          }
+        }
 
-          /**
-           * Redo to latest undo history.
-           */
-          canvas.redo = function (callback) {
+        /**
+         * Redo to latest undo history.
+         */
+        canvas.redo = function (callback) {
             // The undo process will render the new states of the objects
             // Therefore, object:added and object:modified events will triggered again
             // To ignore those events, we are setting a flag.
             this.historyProcessing = true;
             const history = this.historyRedo.pop();
             if (history) {
-              // Every redo action is actually a new action to the undo history
-              this.historyUndo.push(this._historyNext());
-              this.historyNextState = history;
-              this._loadHistory(history, 'history:redo', callback);
+                // Every redo action is actually a new action to the undo history
+                this.historyUndo.push(this._historyNext());
+                this.historyNextState = history;
+                this._loadHistory(history, 'history:redo', callback);
             } else {
-              this.historyProcessing = false;
+                this.historyProcessing = false;
             }
-          }
+        }
 
-          canvas._loadHistory = function(history, event, callback) {
+        canvas._loadHistory = function(history, event, callback) {
             var self = this;
 
             this.loadFromJSON(history, function() {
@@ -352,35 +352,35 @@ const Uvw = () => {
                 self.fire(event);
                 self.historyProcessing = false;
 
-              if (callback && typeof callback === 'function')
-                callback();
+                if (callback && typeof callback === 'function')
+                    callback();
             });
-          }
+        }
 
-          /**
-           * Clear undo and redo history stacks
-           */
-          canvas.clearHistory = function() {
+        /**
+         * Clear undo and redo history stacks
+         */
+        canvas.clearHistory = function() {
             this.historyUndo = [];
             this.historyRedo = [];
             this.fire('history:clear');
-          }
+        }
 
-          /**
-           * Off the history
-           */
-          canvas.offHistory = function() {
+        /**
+         * Off the history
+         */
+        canvas.offHistory = function() {
             this.historyProcessing = true;
-          }
+        }
 
-          /**
-           * On the history
-           */
-          canvas.onHistory = function() {
+        /**
+         * On the history
+         */
+        canvas.onHistory = function() {
             this.historyProcessing = false;
 
             this._historySaveAction();
-          }
+        }
 
 
         // canvas.setDimensions({width: 512, height: 512})
@@ -515,7 +515,7 @@ const Uvw = () => {
 
             updateStateMap(itemsRef.current[value].id)
             uvwRef.current.renderAll()
-
+            //  drawCopyOnCanvas(activeCanvasRef.current);
         }, {
             crossOrigin: 'Anonymous'
         });
@@ -587,7 +587,6 @@ const Uvw = () => {
     useEffect(() => {
         if (!uvwRef.current) return;
 
-
         uvwRef.current.on('mouse:wheel', (opt) => {
             const delta = opt.e.deltaY;
             zoomRef.current = uvwRef.current.getZoom();
@@ -616,10 +615,10 @@ const Uvw = () => {
             opt.e.stopPropagation();
         });
 
+
         uvwRef.current.on('mouse:down', (opt) => {
             isDrawingRef.current = true;
             if (uvwRef.current.isDrawingMode) {
-
                 const pointer = uvwRef.current.getPointer(opt.e);
                 drawingRef.current.freeDrawingBrush.onMouseDown(pointer, opt);
             }
@@ -707,13 +706,13 @@ const Uvw = () => {
         let onClickPosition = new Vector2();
         let currentObject = null;
         state.getData.container.addEventListener('keydown', (e) => {
-            e.preventDefault()
+            //   e.preventDefault()
             if (e.key == 'Alt') {
                 state.getData.controls[0].enabled = false;
             }
         });
         state.getData.container.addEventListener('keyup', (e) => {
-            e.preventDefault()
+            // e.preventDefault()
             if (e.key == 'Alt') {
                 state.getData.controls[0].enabled = true;
             }
@@ -721,6 +720,7 @@ const Uvw = () => {
 
         const onMouseEvt = (e) => {
             e.preventDefault();
+            e.stopPropagation();
             if ( !state.getData.controls[0].enabled ) {
                 const positionOnScene = getPositionOnScene(state.getData.container, e)
                 if (positionOnScene) {
@@ -883,7 +883,7 @@ const Uvw = () => {
             uvwRef.current.discardActiveObject();
 
         }
-         // uvwRef.current.setActiveObject(activeObj);
+        // uvwRef.current.setActiveObject(activeObj);
         setActiveObject(activeObj);
         uvwRef.current.requestRenderAll();
     }
@@ -921,7 +921,7 @@ const Uvw = () => {
     }
 
     const actions = useCallback((e) => {
-        e.preventDefault();
+        // e.preventDefault();
 
         if (e.key === 'Delete') {
             _delete()
@@ -936,7 +936,9 @@ const Uvw = () => {
             _cut()
         }
         if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) {
-           uvwRef.current.undo()
+            uvwRef.current.undo()
+            updateStateMap(itemsRef.current[value].id)
+            // drawCopyOnCanvas(activeCanvasRef.current);
             dispatch({
                 type: 'getCanvas',
                 payload: {
@@ -947,6 +949,8 @@ const Uvw = () => {
         }
         if (e.code === 'KeyY' && (e.ctrlKey || e.metaKey)) {
             uvwRef.current.redo()
+            updateStateMap(itemsRef.current[value].id)
+            //  drawCopyOnCanvas(activeCanvasRef.current);
             dispatch({
                 type: 'getCanvas',
                 payload: {

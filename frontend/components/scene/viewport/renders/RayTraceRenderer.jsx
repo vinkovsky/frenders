@@ -41,12 +41,11 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
 
         sceneRef.current.add(hdr);
 
-            if (state.getRenderer.background) {
-                sceneRef.current.background = new Color(state.getColor);
-            } else {
-                sceneRef.current.background = null;
-            }
-
+        if (state.getRenderer.background) {
+            sceneRef.current.background = new Color(state.getColor);
+        } else {
+            sceneRef.current.background = null;
+        }
 
         rendererRef.current.setSize(1000, 1000)
 
@@ -61,16 +60,15 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
         }
 
         animate();
-        console.log(state.getCamera)
         return () => {
 
-                dispatch({
-                    type: 'getCamera',
-                    payload: {
-                        camera: cameraRef.current,
-                        controls: controlsRef.current
-                    }
-                });
+            dispatch({
+                type: 'getCamera',
+                payload: {
+                    camera: cameraRef.current,
+                    controls: controlsRef.current
+                }
+            });
 
             cancelAnimationFrame(animate);
             rendererRef.current.dispose();
@@ -95,7 +93,6 @@ const RayTraceRenderer = ({ assets: { model, canvas, env } }) => {
 
     useEffect(() => {
         if(!(rendererRef.current && width && height)) return;
-        console.log(rendererRef.current)
         rendererRef.current.setSize(width, height);
         cameraRef.current.aspect = width / height;
         cameraRef.current.updateProjectionMatrix();
