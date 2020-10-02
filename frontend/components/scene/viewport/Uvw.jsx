@@ -699,33 +699,29 @@ const Uvw = () => {
 
     }, [uvwRef.current])
 
-    const [enabledControls, setEnabledControls] = useState(true)
-    const isEnabled = useRef(true)
-
     const keydown = useCallback((e) => {
         const { controls } = state.getData;
         if (!controls) return;
         if (e.key == 'Alt') {
-            setEnabledControls(false)
-            state.getData.controls[0].enabled = false;
-            console.log(enabledControls)
-        }
-    }, [state.getData, enabledControls])
 
+            state.getData.controls[0].enabled = false;
+
+        }
+    }, [state.getData])
 
     const keyup = useCallback((e) => {
         const { controls } = state.getData;
         if (!controls) return;
         if (e.key == 'Alt') {
-            setEnabledControls(true)
+
             state.getData.controls[0].enabled = true;
-            console.log(enabledControls)
+
         }
-    }, [state.getData, enabledControls])
+    }, [state.getData])
 
     useLayoutEffect(() => {
-        const { container, controls } = state.getData;
-        if (!(container && controls)) return;
+        const { container } = state.getData;
+        if (!container) return;
         state.getData.container.addEventListener('keydown', keydown);
         state.getData.container.addEventListener('keyup', keyup);
 
@@ -734,7 +730,7 @@ const Uvw = () => {
             state.getData.container.removeEventListener('keyup', keyup);
         }
 
-    }, [state.getData, enabledControls])
+    }, [state.getData])
 
     useLayoutEffect(() => {
         const { container, scene, camera } = state.getData;
@@ -774,8 +770,8 @@ const Uvw = () => {
         const onMouseEvt = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log(enabledControls)
-            if ( !enabledControls ) {
+
+            if ( e.altKey ) {
                 const positionOnScene = getPositionOnScene(state.getData.container, e)
 
                 if (positionOnScene) {
@@ -789,7 +785,6 @@ const Uvw = () => {
                 }
             }
         }
-
 
         function getIntersects (point, objects) {
             const mouse = new Vector2()
@@ -877,7 +872,7 @@ const Uvw = () => {
             state.getData.container.removeEventListener("mousedown", onMouseEvt, false);
         }
 
-    }, [state.getData, activeObject, enabledControls])
+    }, [state.getData, activeObject])
 
     const _copy = () => {
         let active = uvwRef.current.getActiveObject()
