@@ -7,7 +7,7 @@ const HEROKU_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://frenders-api.
 
 const config = {
     link: new HttpLink({
-        uri: `${ HEROKU_API_URL }/graphql`,
+        uri: `${ LOCAL_API_URL }/graphql`,
         //uri: `http://192.168.0.15:1337/graphql`,
         credentials: 'same-origin'
     }),

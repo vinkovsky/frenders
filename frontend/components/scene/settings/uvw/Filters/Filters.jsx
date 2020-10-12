@@ -58,13 +58,14 @@ export default function Filters() {
                 let arr = [];
 
                 if(e.selected.length > 1) {
-                   //console.log(selectedObject);
+                    //console.log(selectedObject);
                     selectedObject.map((item) => {
                         if (item.filters.length !== 0) {
                             arr.push(Array.from(filtersMap.get(item)));
                         } else {
                             arr.push([])
                         }
+                        state.getCanvas.canvas.renderAll()
                     })
                     const intersection = intersect(...arr);
                     for (let intersectionKey of intersection) {

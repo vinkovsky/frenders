@@ -738,7 +738,7 @@ const Uvw = () => {
 
         let onClickPosition = new Vector2();
         let currentObject = null;
-
+        let mouseOver = false;
 
         function getMousePosition (dom, x, y)  {
             let rect = dom.getBoundingClientRect();
@@ -754,6 +754,15 @@ const Uvw = () => {
             if (intersects.length > 0 && intersects[0].uv) {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
+                console.log(uv)
+                if(uv.x === 0.0 || uv.x === 1.0 || uv.y === 0.0 || uv.y === 1.0) {
+                    let evt = new MouseEvent("mouseup", {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    uvwRef.current.upperCanvasEl.dispatchEvent(evt);
+                }
                 if (intersects[0].object.material.map) intersects[0].object.material.map.transformUv(uv);
 
                 const retinaScaling = uvwRef.current.getRetinaScaling()
@@ -767,6 +776,11 @@ const Uvw = () => {
             }
             return null;
         }
+
+        uvwRef.current.upperCanvasEl.addEventListener('mouseover', () => {
+            mouseOver = true;
+        })
+
         const onMouseEvt = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -775,6 +789,7 @@ const Uvw = () => {
                 const positionOnScene = getPositionOnScene(state.getData.container, e)
 
                 if (positionOnScene) {
+                    mouseOver = false;
                     const canvasRect = uvwRef.current._offset;
                     const simEvt = new MouseEvent(e.type, {
                         clientX: canvasRect.left + positionOnScene.x,
@@ -831,6 +846,18 @@ const Uvw = () => {
                 if (positionOnScene) {
                     pointer.x = positionOnScene.x;
                     pointer.y = positionOnScene.y;
+
+                } else if (!mouseOver) {
+                    let evt = new MouseEvent("mouseup", {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    this.upperCanvasEl.dispatchEvent(evt);
+                    console.log('Mouse on canvas:', mouseOver)
+                } else {
+                    console.log('Mouse on canvas:', mouseOver)
+
                 }
             }
 

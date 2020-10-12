@@ -3,7 +3,8 @@ import Router from "next/router";
 import Cookie from "js-cookie";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
+const LOCAL_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:1337";
+const HEROKU_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://frenders-api.herokuapp.com";
 
 export const registerUser = (username, email, password) => {
     if (typeof window === "undefined") {
@@ -11,7 +12,7 @@ export const registerUser = (username, email, password) => {
     }
     return new Promise((resolve, reject) => {
         axios
-            .post(`${API_URL}/auth/local/register`, { username, email, password })
+            .post(`${LOCAL_API_URL}/auth/local/register`, { username, email, password })
             .then((res) => {
                 Cookie.set("token", res.data.jwt);
                 resolve(res);
@@ -29,7 +30,7 @@ export const login = (identifier, password) => {
     }
     return new Promise((resolve, reject) => {
         axios
-            .post(`${ API_URL }/auth/local/`, { identifier, password })
+            .post(`${ LOCAL_API_URL }/auth/local/`, { identifier, password })
             .then((res) => {
                 Cookie.set("token", res.data.jwt);
                 resolve(res);
