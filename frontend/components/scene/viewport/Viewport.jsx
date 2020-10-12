@@ -88,7 +88,7 @@ const Viewport = React.memo(({ envMaps }) => {
 
             let objects = [];
             gltf.scene.traverse((child) => {
-                if(!child.isMesh ) return;
+                if( !child.isMesh ) return;
                 child.material = new THREE.MeshStandardMaterial()
                 child.material.side = THREE.DoubleSide;
                 objects.push(child.name);
@@ -115,7 +115,7 @@ const Viewport = React.memo(({ envMaps }) => {
             setAssets({ model: modelRef.current, canvas: state.getCanvas, env: envRef.current })
         }
         init();
-    }, [state.getCanvas, state.getRenderer.envMap, modelRef.current, envRef.current])
+    }, [state.getCanvas, state.getRenderer.envMap, modelRef.current])
 
     if (!assets) {
         return null;

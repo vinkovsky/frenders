@@ -512,7 +512,7 @@ const Uvw = () => {
                 }
             });
             //setActiveObject(img)
-
+            uvwRef.current.setActiveObject(img);
             updateStateMap(itemsRef.current[value].id)
             uvwRef.current.renderAll()
             //  drawCopyOnCanvas(activeCanvasRef.current);

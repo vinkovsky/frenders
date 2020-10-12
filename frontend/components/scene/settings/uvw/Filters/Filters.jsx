@@ -92,6 +92,7 @@ export default function Filters() {
             } else {
                 setDisabled(true);
             }
+
         }
         state.getCanvas.canvas.on('selection:created', selectHandler);
         state.getCanvas.canvas.on('selection:updated', selectHandler);
