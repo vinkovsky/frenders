@@ -98,7 +98,9 @@ const Uvw = () => {
     const lastPosYref = useRef();
     const cssScaleRef = useRef({});
     const clipboardRef = useRef(null);
-    let index = 0;
+    // let index = 0;
+    let a = 0;
+    let b = 0;
 
     const TEXTURES_DATA = [
         {
@@ -159,8 +161,8 @@ const Uvw = () => {
         // })
 
         dataMap[map].push(JSON.stringify(uvwRef.current.toJSON()));
-
     }
+
     useEffect(() => {
         if (!(data && uvwRef.current && dataUv?.asset)) return;
 
@@ -322,7 +324,6 @@ const Uvw = () => {
             } else {
                 this.historyProcessing = false;
             }
-
         }
 
         /**
@@ -382,7 +383,6 @@ const Uvw = () => {
             this._historySaveAction();
         }
 
-
         // canvas.setDimensions({width: 512, height: 512})
     });
 
@@ -431,7 +431,6 @@ const Uvw = () => {
 
     function _afterRender() {
         uvwRef.current.off('after:render', _afterRender);
-
         drawCopyOnCanvas(activeCanvasRef.current);
         setTimeout(() => {
             uvwRef.current.on('after:render', _afterRender);
@@ -439,7 +438,6 @@ const Uvw = () => {
     }
 
     function copyThePencil(canvasEl) {
-
         const ctx = canvasEl.getContext('2d');
         if (uvwRef.current._isCurrentlyDrawing) {
             ctx.save();
@@ -511,10 +509,12 @@ const Uvw = () => {
                     maps: itemsRef.current
                 }
             });
-            //setActiveObject(img)
+            setActiveObject(img)
             uvwRef.current.setActiveObject(img);
-            updateStateMap(itemsRef.current[value].id)
-            uvwRef.current.renderAll()
+            updateStateMap(itemsRef.current[value].id);
+            state.getCanvas?.canvas.requestRenderAll();
+            uvwRef.current.renderAll();
+
             //  drawCopyOnCanvas(activeCanvasRef.current);
         }, {
             crossOrigin: 'Anonymous'
@@ -536,12 +536,11 @@ const Uvw = () => {
                 // drawCopyOnCanvas(activeCanvas);
             });
         }
-
     }
 
     useEffect(() => {
         activeCanvasRef.current = itemsRef.current[value];
-        switchMap(itemsRef.current[value].id/*, activeCanvasRef.current*/)
+        switchMap(itemsRef.current[value].id/*, activeCanvasRef.current*/);
         dispatch({
             type: 'getCanvas',
             payload: {
@@ -549,6 +548,7 @@ const Uvw = () => {
                 maps: itemsRef.current
             }
         });
+
     }, [value])
 
     useEffect(() => {
@@ -615,7 +615,6 @@ const Uvw = () => {
             opt.e.stopPropagation();
         });
 
-
         uvwRef.current.on('mouse:down', (opt) => {
             isDrawingRef.current = true;
             if (uvwRef.current.isDrawingMode) {
@@ -636,9 +635,8 @@ const Uvw = () => {
                 lastPosXref.current = evt.clientX;
                 lastPosYref.current = evt.clientY;
                 uvwRef.current.discardActiveObject();
-
             }
-            uvwRef.current.bringToFront(uvwRef.current.getActiveObject())
+            // uvwRef.current.bringToFront(uvwRef.current.getActiveObject())
         });
 
         uvwRef.current.on('mouse:move', (opt) => {
@@ -691,13 +689,24 @@ const Uvw = () => {
                 o.setCoords();
             });
         });
+    }, [uvwRef.current]);
 
-        // uvwRef.current.on("path:created", function (opt) {
-        //     opt.path.id = fabric.Object.__uid++
-        //     console.log(opt.path.id)
-        // });
-
-    }, [uvwRef.current])
+    useEffect(() => {
+        uvwRef.current.on("object:added", function (opt) {
+            if (opt.target.id === undefined) {
+                if(opt.target.type === 'path') {
+                    opt.target.set('id', a++);
+                }
+                else if(opt.target.type === 'image') {
+                    opt.target.set('id', b++);
+                }
+            }
+        });
+        uvwRef.current.on("object:removed", function (opt) {
+            a = 0;
+            b = 0;
+        });
+    }, [])
 
     const keydown = useCallback((e) => {
         const { controls } = state.getData;
@@ -754,7 +763,6 @@ const Uvw = () => {
             if (intersects.length > 0 && intersects[0].uv) {
                 currentObject = intersects[0].object;
                 let uv = intersects[0].uv;
-                console.log(uv)
                 if(uv.x === 0.0 || uv.x === 1.0 || uv.y === 0.0 || uv.y === 1.0) {
                     let evt = new MouseEvent("mouseup", {
                         bubbles: true,
@@ -854,10 +862,6 @@ const Uvw = () => {
                         view: window
                     });
                     this.upperCanvasEl.dispatchEvent(evt);
-                    console.log('Mouse on canvas:', mouseOver)
-                } else {
-                    console.log('Mouse on canvas:', mouseOver)
-
                 }
             }
 
@@ -931,9 +935,8 @@ const Uvw = () => {
                 uvwRef.current.remove(object);
             });
             uvwRef.current.discardActiveObject();
-
         }
-        // uvwRef.current.setActiveObject(activeObj);
+        updateStateMap(itemsRef.current[value].id)
         setActiveObject(activeObj);
         uvwRef.current.requestRenderAll();
     }
@@ -964,6 +967,7 @@ const Uvw = () => {
             } else {
                 uvwRef.current.add(clonedObj);
             }
+            updateStateMap(itemsRef.current[value].id)
             uvwRef.current.setActiveObject(clonedObj);
             setActiveObject(clonedObj);
             uvwRef.current.requestRenderAll();
@@ -1012,11 +1016,8 @@ const Uvw = () => {
     }, [value]);
 
     useEffect(() => {
-
         if (!uvwRef.current) return
-
         document.addEventListener('keydown', actions, false)
-
         return () => {
             document.removeEventListener('keydown', actions, false);
         }

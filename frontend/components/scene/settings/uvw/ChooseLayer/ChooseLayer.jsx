@@ -32,8 +32,10 @@ export default function ChooseLayer() {
     if (state.getCanvas !== undefined) {
         if (!state.getCanvas) return;
         state.getCanvas.canvas._objects.map((obj, index) => {
-            treeViewItems.push({id: (index + 2).toString(), title: obj.type + index });
-            obj.id = (index + 2).toString();
+            treeViewItems.push({
+                id: (index + 2).toString(),
+                title: obj.type + obj.id
+            });
         })
     }
 
@@ -52,7 +54,6 @@ export default function ChooseLayer() {
         if(activeObj.length !== 0) {
             treeViewItems.map((item) => {
                 activeObj.map(obj => {
-                    // console.log(item.title, (obj.type + Math.floor(obj.id/2)))
                     if (item.title === (obj.type + obj.id)) {
                         setSelected(item.id);
                     }
@@ -62,9 +63,9 @@ export default function ChooseLayer() {
         else setSelected("1")
     }, [activeObj])
 
-    const getObjectHandler = (e, id) => {
+    const getObjectHandler = (e, id, title) => {
         state.getCanvas?.canvas.getObjects().forEach(function(o) {
-            if(o.id === id) {
+            if((o.type + o.id) === title) {
                 state.getCanvas?.canvas.setActiveObject(o);
                 state.getCanvas?.canvas.renderAll()
                 setSelected(id)
@@ -92,7 +93,7 @@ export default function ChooseLayer() {
             state.getCanvas && <div className={classes.labelRoot}
                  onClick={event => {
                      event.preventDefault();
-                     getObjectHandler(event, item.id);
+                     getObjectHandler(event, item.id, item.title);
                      state.getCanvas.canvas.isDrawingMode = false;
                  }}
             >
